@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AI 小手机</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif;background:#d6d6da;display:flex;align-items:center;justify-content:center;overflow:hidden}
+button,input,textarea,select{font-family:inherit;color:inherit;font-size:inherit}
+a{color:inherit;cursor:pointer}
+#phone{--top:env(safe-area-inset-top,0px);--hb:26px;--fs:15px;--bg:#fff;--surf:#fafafa;--surf2:#efefef;--line:#dbdbdb;--ink:#262626;--sub:#8e8e8e;--accent:#0095f6;--like:#ed4956;--bub:#efefef;--bubink:#262626;--glass:rgba(255,255,255,.72);
+  position:relative;width:100vw;height:100dvh;overflow:hidden;background:var(--bg);color:var(--ink);font-size:var(--fs);flex:none}
+#phone[data-theme=dark]{--bg:#000;--surf:#121212;--surf2:#262626;--line:#2c2c2c;--ink:#f5f5f5;--sub:#a8a8a8;--bub:#262626;--bubink:#f5f5f5;--glass:rgba(28,28,30,.66)}
+@media(min-width:560px){#phone{--top:54px;width:440px;height:956px;border-radius:58px;box-shadow:0 0 0 11px #111,0 0 0 13px #3a3a3e,0 30px 80px rgba(0,0,0,.35)}}
+
+/* 状态栏 / 灵动岛 / Home 条 */
+#sb{position:absolute;top:0;left:0;right:0;height:var(--top);z-index:70;pointer-events:none;display:flex;align-items:center;justify-content:space-between;padding:6px 34px 0;font-weight:600;font-size:15px;color:var(--ink)}
+#sb.t-light{color:#fff}
+#sb .sbr{display:flex;gap:6px;align-items:center;font-size:12px}
+.batt{width:25px;height:12px;border:1.5px solid currentColor;border-radius:4px;position:relative;display:inline-block;opacity:.9}
+.batt::after{content:"";position:absolute;inset:1.5px 5px 1.5px 1.5px;background:currentColor;border-radius:2px}
+@media(max-width:559px){#sb{display:none}}
+@media(min-width:560px){#sb::before{content:"";position:absolute;left:50%;top:12px;width:122px;height:36px;margin-left:-61px;background:#000;border-radius:20px}}
+#hbar{position:absolute;left:0;right:0;bottom:0;height:var(--hb);z-index:80;display:flex;justify-content:center;align-items:center;cursor:pointer}
+#hbar::after{content:"";width:136px;height:5px;border-radius:3px;background:var(--hbc,#262626);opacity:.85}
+
+/* 主屏 */
+#home{position:absolute;inset:0;padding:calc(var(--top) + 16px) 18px 0;display:flex;flex-direction:column}
+#home.t-light{--ht:#fff;--hs:rgba(0,0,0,.35)}
+#home.t-dark{--ht:#1c1c1e;--hs:transparent}
+.wid{display:flex;gap:12px;height:194px;margin-bottom:28px;flex:none}
+.wph{flex:1;border-radius:28px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:13px;cursor:pointer}
+.wph img{width:100%;height:100%;object-fit:cover}
+.wcol{flex:1;display:flex;flex-direction:column;gap:12px}
+.wcard{flex:1;border-radius:28px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:12px 18px;display:flex;flex-direction:column;justify-content:center;min-height:0}
+.wcard b{font-size:34px;font-weight:300;letter-spacing:1px;line-height:1.1}
+.wcard span{font-size:12px;color:var(--sub);margin-top:2px}
+.wcard.note{font-size:14px;line-height:1.5;cursor:pointer;overflow:hidden}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px 6px;justify-items:center}
+.cell{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer}
+.ic{position:relative;width:64px;height:64px;border-radius:18px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:center;font-size:31px}
+.ic img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+#phone[data-shape=circle] .ic{border-radius:50%}
+#phone[data-shape=flat] .ic{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;font-size:44px}
+.lb{font-size:11.5px;color:var(--ht);text-shadow:0 1px 3px var(--hs)}
+.badge{position:absolute;top:-5px;right:-5px;min-width:20px;height:20px;border-radius:10px;background:var(--like);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 5px}
+.dock{position:absolute;left:14px;right:14px;bottom:calc(var(--hb) + 12px);height:92px;border-radius:36px;background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);display:flex;justify-content:space-around;align-items:center}
+.dock .lb{display:none}
+.dock .ic{background:none;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:0 0 0 1px rgba(128,128,128,.18) inset}
+
+/* 应用容器 */
+#app{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;z-index:20;padding-bottom:var(--hb)}
+#app[hidden]{display:none}
+#app.pop{animation:pop .22s ease-out}
+@keyframes pop{from{transform:scale(.95);opacity:0}}
+.bar{flex:none;padding-top:var(--top);min-height:calc(var(--top) + 50px);display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding-left:6px;padding-right:6px;background:var(--bg);border-bottom:.5px solid var(--line)}
+.bar h1{font-size:17px;font-weight:650;text-align:center}
+.bar .l,.bar .r{display:flex;align-items:center}
+.bar .r{justify-content:flex-end}
+.bar button,.hb{background:none;border:0;font-size:21px;padding:6px 9px;cursor:pointer;color:var(--ink)}
+.bar button[data-act=back],.hb[data-act=back]{font-size:32px;line-height:1;padding-bottom:10px}
+.scroll{flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch}
+.pad{padding:12px 16px}
+.empty{text-align:center;color:var(--sub);padding:70px 36px;font-size:14px;line-height:1.8}
+.hint{padding:12px 18px;font-size:12.5px;color:var(--sub);line-height:1.6}
+.sec{padding:16px 18px 6px;font-size:13px;font-weight:600}
+.item{display:flex;gap:13px;padding:11px 18px;align-items:center;cursor:pointer}
+.item:active{background:var(--surf)}
+.grow{flex:1;min-width:0}
+.t1{font-size:15px;font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.t2{font-size:13px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;font-weight:400}
+.time{font-size:11.5px;color:var(--sub);font-weight:400}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex:none}
+.ico{font-size:21px;width:28px;text-align:center}
+.av{width:48px;height:48px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:25px;flex:none;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover}
+.av.sm{width:34px;height:34px;font-size:19px}
+.av.md{width:60px;height:60px;font-size:30px}
+.av.xl{width:100px;height:100px;font-size:50px}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:9px 18px;font-size:14px;font-weight:600;cursor:pointer}
+.btn.ghost{background:var(--surf2);color:var(--ink)}
+.btn.danger{background:#fde8ea;color:var(--like)}
+.btn.big{width:100%;padding:13px;font-size:15px;margin-top:14px}
+.seg{display:flex;background:var(--surf2);border-radius:10px;padding:3px;gap:2px}
+.seg span{flex:1;text-align:center;padding:6px 4px;border-radius:8px;font-size:13px;cursor:pointer;color:var(--sub);white-space:nowrap}
+.seg span.on{background:var(--bg);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.tg{width:44px;height:26px;border-radius:13px;background:var(--surf2);position:relative;flex:none;transition:.2s;border:.5px solid var(--line)}
+.tg::after{content:"";position:absolute;left:2px;top:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.tg.on{background:var(--accent);border-color:var(--accent)}
+.tg.on::after{left:20px}
+.tag{display:inline-block;font-size:10.5px;padding:1px 7px;border-radius:8px;background:var(--surf2);color:var(--sub);margin-right:5px}
+.chips{display:flex;gap:8px;padding:10px 16px;overflow-x:auto;flex:none}
+.chips.wrap{flex-wrap:wrap;overflow:visible}
+.chip{flex:none;padding:6px 14px;border-radius:16px;background:var(--surf2);font-size:13px;color:var(--ink);cursor:pointer}
+.chip.on{background:var(--ink);color:var(--bg)}
+input.line,.pad input{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surf);outline:none;margin-top:6px}
+
+/* 聊天 */
+#chead{flex:none;padding-top:var(--top);min-height:calc(var(--top) + 54px);display:flex;align-items:center;gap:8px;padding-left:2px;padding-right:6px;border-bottom:.5px solid var(--line);background:var(--bg)}
+#chead .hn{flex:1;min-width:0;line-height:1.25}
+#chead .hn b{font-size:15.5px;display:block}
+#chead .hn small{color:var(--sub);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.pill{border:1px solid var(--line);background:none;border-radius:14px;padding:4px 12px;font-size:12px;color:var(--sub);cursor:pointer}
+.pill.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+#msgs{padding:8px 0 10px;background-size:cover;background-position:center}
+.m{display:flex;gap:8px;padding:4px 14px;align-items:flex-end}
+.m.me{flex-direction:row-reverse}
+.mc{max-width:72%}
+.m.me .mc{text-align:right}
+.bub{display:inline-block;padding:9px 14px;border-radius:20px;background:var(--bub);color:var(--bubink);line-height:1.5;font-size:var(--fs);white-space:pre-wrap;word-break:break-word;text-align:left}
+.m.me .bub{background:var(--accent);color:#fff}
+#phone[data-bubble=square] .bub{border-radius:7px}
+#phone[data-bubble=grad] .m.me .bub{background:linear-gradient(135deg,#7a3cff,#d300c5 55%,#ff0069)}
+.who{font-size:11px;color:var(--sub);margin:0 0 2px 4px;text-align:left}
+.sysmsg{text-align:center;font-size:12px;color:var(--sub);padding:8px 28px;line-height:1.5}
+.voice{display:inline-flex;align-items:center;gap:8px;min-width:96px;cursor:pointer}
+.voice .wave{flex:1;height:14px;background:repeating-linear-gradient(90deg,currentColor 0 2px,transparent 2px 5px);opacity:.55;-webkit-mask:linear-gradient(90deg,#000 0 100%);border-radius:2px}
+.voice b{font-weight:500;font-size:12px}
+.vtext{font-size:12.5px;color:var(--sub);margin-top:4px;text-align:left;max-width:100%}
+.stk{font-size:56px;line-height:1.1}
+.money{display:block;width:216px;border-radius:16px;background:linear-gradient(135deg,#ff8a5c,#ff3d6b);color:#fff;padding:12px 14px;cursor:pointer;text-align:left}
+.money.tr{background:linear-gradient(135deg,#f7bd45,#f07f26)}
+.money .amt{font-size:23px;font-weight:700;margin:2px 0}
+.money .nt{font-size:13px;opacity:.95}
+.money small{display:block;opacity:.85;font-size:11.5px;margin-top:9px;border-top:1px solid rgba(255,255,255,.35);padding-top:6px}
+.money.done{filter:saturate(.3);opacity:.8}
+.card2{display:inline-block;text-align:left;border:1px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--surf);max-width:230px;font-size:13.5px;line-height:1.5}
+.card2 b{display:block;font-size:12px;color:var(--sub);font-weight:500;margin-bottom:4px}
+.narr{margin:10px 22px;padding:2px 0 2px 14px;border-left:2px solid var(--accent);font-family:"Songti SC","Noto Serif SC","Source Han Serif SC",serif;line-height:1.9;white-space:pre-wrap;font-size:calc(var(--fs) + .5px)}
+.youline{margin:10px 22px 10px 70px;text-align:right;color:var(--sub);font-style:italic;line-height:1.7;white-space:pre-wrap}
+#notice{text-align:center;font-size:12.5px;color:var(--sub);padding:6px 10px;flex:none}
+#notice:empty{display:none}
+#notice a{color:var(--accent);font-weight:600}
+.composer{display:flex;gap:6px;padding:8px 10px;border-top:.5px solid var(--line);align-items:flex-end;flex:none;background:var(--bg)}
+.composer textarea{flex:1;border:1px solid var(--line);border-radius:20px;padding:9px 15px;resize:none;max-height:100px;background:var(--surf);outline:none;line-height:1.4}
+.composer textarea.vm{border-color:var(--accent)}
+.cb{width:38px;height:38px;border-radius:50%;border:0;background:none;font-size:21px;cursor:pointer;flex:none}
+.cb.send{background:var(--accent);color:#fff;font-size:19px;font-weight:700}
+#panel{flex:none;border-top:.5px solid var(--line);background:var(--surf);padding:12px}
+.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 4px}
+.pi{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;font-size:12px;color:var(--sub)}
+.pi i{font-style:normal;font-size:24px;width:54px;height:54px;border-radius:16px;background:var(--bg);display:flex;align-items:center;justify-content:center;border:.5px solid var(--line)}
+.pi.on i{border-color:var(--accent);background:var(--surf2)}
+.emos{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;font-size:27px;text-align:center}
+.emos span{cursor:pointer;padding:3px}
+
+/* 圈子 */
+.stories{display:flex;gap:14px;padding:12px 16px;overflow-x:auto;border-bottom:.5px solid var(--line)}
+.story{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex:none;width:68px;position:relative}
+.story small{font-size:11.5px;max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ring{padding:3px;border-radius:50%;background:var(--line);position:relative}
+.ring.on{background:linear-gradient(45deg,#f9ce34,#ee2a7b,#6228d7)}
+.ring .av{border:3px solid var(--bg)}
+.ring.me i{position:absolute;right:0;bottom:0;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;font-style:normal;font-size:15px;display:flex;align-items:center;justify-content:center;border:2px solid var(--bg)}
+.ig{padding-bottom:12px}
+.igh{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.igh b{font-size:14px}
+.igh span{color:var(--sub);font-size:12px;flex:1}
+.igh a{font-size:12px;color:var(--sub)}
+.pimg{width:100%;display:block;max-height:520px;object-fit:cover}
+.pph{aspect-ratio:1;background:linear-gradient(135deg,hsl(var(--h) 75% 84%),hsl(calc(var(--h) + 45) 70% 74%));display:flex;flex-direction:column;align-items:center;justify-content:center;padding:34px;text-align:center;color:rgba(0,0,0,.6);gap:10px}
+.pph span{font-size:34px}
+.pph p{font-size:14px;line-height:1.6}
+.iga{display:flex;gap:16px;padding:10px 14px 4px;font-size:23px}
+.igl{padding:2px 14px;font-size:13.5px;font-weight:600}
+.igc{padding:2px 14px;font-size:14px;line-height:1.55;word-break:break-word}
+.igc b{margin-right:4px}
+
+/* 论坛 / 档案 / 其他 */
+.fp{padding:14px 18px;border-bottom:.5px solid var(--line);cursor:pointer}
+.ft{font-weight:650;font-size:15.5px;line-height:1.4}
+.fc{font-size:13.5px;color:var(--sub);margin-top:5px;line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fm{display:flex;gap:14px;font-size:12px;color:var(--sub);margin-top:9px}
+.detail{padding:16px 18px;border-bottom:.5px solid var(--line)}
+.detail h2{font-size:19px;line-height:1.4;margin-bottom:10px}
+.who2{display:flex;gap:10px;align-items:center;margin-bottom:12px;font-size:12.5px;color:var(--sub)}
+.who2 b{display:block;font-size:14px;color:var(--ink)}
+.rp{display:flex;gap:10px;padding:12px 18px;border-bottom:.5px solid var(--line)}
+.rp .fl{font-size:11px;color:var(--sub);margin-top:4px}
+.tx{font-size:15px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.prof{text-align:center;padding:22px 18px 8px}
+.prof h2{margin-top:10px;font-size:20px}
+.prof .sig{color:var(--sub);font-size:13.5px;margin-top:4px;line-height:1.5}
+.aff{margin:12px 0;font-size:13px;color:var(--sub)}
+.aff b{color:var(--like);letter-spacing:2px;font-size:16px}
+.btnrow{display:flex;gap:8px;justify-content:center;margin:10px 0 6px;flex-wrap:wrap}
+.kv{padding:6px 18px 20px}
+.kv div{padding:10px 0;border-bottom:.5px solid var(--line);font-size:14px;line-height:1.55;white-space:pre-wrap}
+.kv small{display:block;color:var(--sub);font-size:11.5px;margin-bottom:2px}
+.balance{margin:16px;padding:22px;border-radius:22px;background:linear-gradient(135deg,#262626,#555);color:#fff}
+.balance small{opacity:.7;font-size:12px}
+.balance b{display:block;font-size:36px;font-weight:600;margin:4px 0 14px}
+.balance .btnrow{justify-content:flex-start;margin:0}
+.shop{display:flex;gap:14px;align-items:center;padding:14px 18px;border-bottom:.5px solid var(--line);cursor:pointer}
+.shop .se{width:56px;height:56px;border-radius:16px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:30px}
+.price{color:var(--like);font-weight:600}
+.plus{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;border:0;font-size:20px;line-height:1;cursor:pointer}
+.cartbar{flex:none;margin:8px 14px;padding:12px 16px;border-radius:18px;background:var(--ink);color:var(--bg);display:flex;align-items:center;justify-content:space-between}
+.cartbar button{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:8px 16px;font-weight:600;cursor:pointer}
+.out{margin:6px 16px 14px;padding:16px;border-radius:18px;background:var(--surf);border:.5px solid var(--line)}
+.out h4{font-size:15px;margin-bottom:4px}
+.out small{color:var(--sub);font-size:12px}
+.out p{margin-top:10px;font-family:"Songti SC","Noto Serif SC",serif;line-height:1.85;font-size:14.5px;white-space:pre-wrap}
+.pcard{margin:8px 16px;padding:14px 16px;border-radius:16px;background:var(--surf);border:.5px solid var(--line);line-height:1.7;font-size:14px;white-space:pre-wrap}
+.pcard b{display:block;font-size:12px;color:var(--sub);margin-bottom:3px}
+.sw{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid var(--bg);box-shadow:0 0 0 1px var(--line);flex:none}
+.sw.on{box-shadow:0 0 0 2px var(--ink)}
+.wp{width:48px;height:84px;border-radius:10px;cursor:pointer;flex:none;border:1px solid var(--line);background-size:cover;background-position:center}
+.rowx{display:flex;gap:10px;align-items:center;padding:6px 18px;overflow-x:auto}
+.rowx .btn{flex:none}
+
+/* 弹层 */
+.mask{position:absolute;inset:0;background:rgba(0,0,0,.42);display:flex;align-items:flex-end;z-index:90}
+.sheet{width:100%;background:var(--bg);color:var(--ink);border-radius:24px 24px 0 0;padding:18px 18px calc(18px + var(--hb));max-height:88%;overflow-y:auto}
+.sheet h3{font-size:16px;margin-bottom:12px;text-align:center}
+.sheet p.desc{font-size:13.5px;color:var(--sub);line-height:1.6;text-align:center}
+.fld{display:block;margin-bottom:12px}
+.fl{display:block;font-size:12px;color:var(--sub)}
+.sheet input:not([type=checkbox]):not([type=file]),.sheet textarea,.sheet select{display:block;width:100%;margin-top:5px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surf);color:var(--ink);outline:none}
+.sheet input:focus,.sheet textarea:focus,.sheet select:focus,.pad input:focus{border-color:var(--accent)}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;margin-bottom:12px}
+.imgrow{display:flex;gap:8px;align-items:center;margin-top:6px}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.menu{display:flex;flex-direction:column;gap:8px}
+.menu .btn{border-radius:12px;padding:13px;text-align:center}
+#toast{position:absolute;left:50%;bottom:calc(var(--hb) + 104px);transform:translateX(-50%);background:rgba(28,28,30,.92);color:#fff;padding:9px 16px;border-radius:20px;font-size:13px;z-index:99;max-width:84%;opacity:0;transition:opacity .25s;pointer-events:none;text-align:center}
+#toast.on{opacity:1}
+#banner{position:absolute;left:10px;right:10px;top:calc(var(--top) + 4px);z-index:95;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:22px;padding:12px 14px;display:flex;gap:10px;align-items:center;box-shadow:0 8px 30px rgba(0,0,0,.2);transform:translateY(-160%);transition:transform .35s cubic-bezier(.2,.9,.3,1);cursor:pointer}
+#banner.on{transform:none}
+#banner b{font-size:14px;display:block}
+#banner span{font-size:13px;color:var(--sub);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+<div id="phone">
+  <div id="sb"><span id="sbtime"></span><span class="sbr"><span>5G</span><i class="batt"></i></span></div>
+  <div id="home"></div>
+  <div id="app" hidden></div>
+  <div id="hbar" data-act="home"></div>
+  <div id="banner"></div>
+  <div id="toast"></div>
+</div>
+<script>
+/* ================= 工具 ================= */
+const $=(s,e=document)=>e.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
+const now=()=>Date.now();
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
+const hash=s=>[...String(s)].reduce((h,c)=>(h*31+c.charCodeAt(0))>>>0,7);
+const fmt=t=>{const d=new Date(t),n=new Date(),hm=d.toTimeString().slice(0,5);return d.toDateString()===n.toDateString()?hm:(d.getMonth()+1)+'/'+d.getDate()+' '+hm};
+const money=n=>'¥'+(+n).toFixed(2);
+let toastTimer;
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(()=>e.classList.remove('on'),2300)}
+let bannerTimer,bannerFn=null;
+function banner(title,text,fn){const b=$('#banner');b.innerHTML=`<div class="av sm">${esc(title[0]||'💬')}</div><div class="grow"><b>${esc(title)}</b><span>${esc(text)}</span></div>`;bannerFn=fn;b.classList.add('on');clearTimeout(bannerTimer);bannerTimer=setTimeout(()=>b.classList.remove('on'),3800)}
+$('#banner').onclick=()=>{$('#banner').classList.remove('on');bannerFn&&bannerFn()};
+
+/* ================= 存储 ================= */
+const KEY='ai-phone-v2',OLD='ai-phone-v1',mem={};let warned=false;
+const store={
+  get(){try{const v=localStorage.getItem(KEY)||localStorage.getItem(OLD);return v?JSON.parse(v):null}catch(e){return mem[KEY]?JSON.parse(mem[KEY]):null}},
+  set(v){const s=JSON.stringify(v);try{localStorage.setItem(KEY,s);return true}catch(e){mem[KEY]=s;if(!warned){warned=true;toast('存储空间不足或被禁用,数据可能无法长期保存,请到「设置」导出备份')}return false}}
+};
+const WALLS=['linear-gradient(160deg,#fdeff9,#d9e4ff)','linear-gradient(160deg,#ffecd2,#fcb69f)','linear-gradient(160deg,#c9d6ff,#e2e2e2)','linear-gradient(160deg,#a1c4fd,#c2e9fb)','linear-gradient(160deg,#2c3e50,#4ca1af)','linear-gradient(160deg,#0f2027,#2c5364)','linear-gradient(160deg,#232526,#414345)','linear-gradient(160deg,#f6d365,#fda085)'];
+const defaults=()=>({
+  settings:{baseUrl:'https://api.openai.com/v1',apiKey:'',model:'gpt-4o-mini',temperature:0.9,history:24,stream:true,autoVoice:false,proactive:false,proactiveMin:5},
+  me:{name:'我',avatar:'🙂',persona:''},
+  chars:[
+    {id:'c1',name:'林小满',avatar:'🌿',signature:'今天也要喝咖啡',gender:'女',age:'24',birthday:'4月12日',job:'自由插画师',persona:'温柔爱笑,有点慢热,喜欢猫和咖啡,容易害羞。',looks:'齐肩短发,常穿米色针织衫',speech:'语气轻快,偶尔用颜文字,喜欢说“嗯嗯”“好呀”',background:'独居在老城区的小公寓,养了一只叫“年糕”的橘猫。',relation:'刚认识不久、互有好感的朋友',callMe:'直接叫名字',taboo:'不喜欢被催稿',scenario:'',greeting:'嗨~今天过得怎么样?',example:'',voice:{},aff:50},
+    {id:'c2',name:'沈知行',avatar:'🎧',signature:'凌晨三点的歌最好听',gender:'男',age:'27',birthday:'11月3日',job:'独立音乐人',persona:'毒舌但心软,熬夜党,不擅长直接表达关心。',looks:'黑色卫衣,耳朵上总挂着耳机',speech:'说话简短,带点冷幽默,偶尔嘴硬',background:'在录音棚和出租屋之间两点一线,正在做第一张专辑。',relation:'总爱拌嘴的老朋友',callMe:'叫“喂”或外号',taboo:'讨厌被说“靠谱”',scenario:'',greeting:'哟,终于想起我了?',example:'',voice:{},aff:50}
+  ],
+  groups:[],chats:{},meta:{},moments:[],
+  forum:{boards:['综合','日常','世界观讨论'],posts:[]},
+  world:[{id:'w1',title:'示例:城市设定',keys:'城市,星河市',content:'故事发生在沿海城市“星河市”,常年多雨,夜晚霓虹很美。',constant:false,scope:'all',enabled:true}],
+  wallet:{balance:520,records:[],lastSign:''},orders:[],outings:[],phones:{},lastPro:0,
+  style:{dark:false,accent:'#0095f6',wall:WALLS[0],homeText:'dark',chatBg:'',widgetImg:'',widgetNote:'今天也要好好生活 ✿',shape:'round',font:'md',bubble:'round',icons:{}}
+});
+const D0=defaults(),SV=store.get()||{};
+let S={...D0,...SV,settings:{...D0.settings,...SV.settings},style:{...D0.style,...SV.style,icons:{...(SV.style?.icons||{})}},wallet:{...D0.wallet,...SV.wallet},forum:{...D0.forum,...SV.forum},me:{...D0.me,...SV.me},meta:{...(SV.meta||{})}};
+function save(){Object.keys(S.chats).forEach(k=>{if(S.chats[k].length>500)S.chats[k].splice(0,S.chats[k].length-400)});if(S.wallet.records.length>120)S.wallet.records.length=120;store.set(S)}
+
+/* ================= 图片 ================= */
+function pickImage({size=512,square=false,w,h,q=.8,type='image/jpeg'}={}){
+  return new Promise(res=>{
+    const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+    inp.onchange=()=>{
+      const f=inp.files[0];if(!f)return res(null);
+      const rd=new FileReader();
+      rd.onload=()=>{const im=new Image();
+        im.onload=()=>{
+          let cw,ch;
+          if(square){cw=ch=size}else if(w&&h){cw=w;ch=h}else{const k=Math.min(1,size/Math.max(im.width,im.height));cw=Math.round(im.width*k);ch=Math.round(im.height*k)}
+          const cv=document.createElement('canvas');cv.width=cw;cv.height=ch;const cx=cv.getContext('2d');
+          const sc=Math.max(cw/im.width,ch/im.height),dw=im.width*sc,dh=im.height*sc;
+          cx.drawImage(im,(cw-dw)/2,(ch-dh)/2,dw,dh);res(cv.toDataURL(type,q));
+        };
+        im.onerror=()=>res(null);im.src=rd.result};
+      rd.readAsDataURL(f);
+    };
+    inp.click();
+  });
+}
+const bgCSS=v=>!v?'':v.startsWith('data:')?`url("${v}") center/cover no-repeat`:v;
+const isImg=v=>typeof v==='string'&&v.startsWith('data:');
+function download(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'application/json'}));a.download=name;a.click()}
+
+/* ================= 数据助手 ================= */
+const charById=id=>id==='me'?{id:'me',name:S.me.name,avatar:S.me.avatar}
+  :(id&&String(id).startsWith('npc:'))?{id,name:String(id).slice(4),avatar:'👤'}
+  :S.chars.find(c=>c.id===id)||{id,name:'未知',avatar:'❔'};
+const groupById=id=>S.groups.find(g=>g.id===id);
+const isGroup=id=>String(id).startsWith('g_');
+const chatTitle=id=>isGroup(id)?(groupById(id)?.name||'群聊'):charById(id).name;
+const chatLog=id=>S.chats[id]=S.chats[id]||[];
+const M=id=>S.meta[id]=S.meta[id]||{mode:'online',blocked:false,unread:0,bg:''};
+const lastMsg=id=>chatLog(id).filter(m=>m.role!=='sys').slice(-1)[0];
+const av=(o,cls='')=>`<div class="av ${cls}">${isImg(o.avatar)?`<img src="${o.avatar}">`:esc(o.avatar||(o.name||'?')[0])}</div>`;
+const charsBrief=()=>S.chars.map(c=>`id=${c.id} 名字=${c.name} 设定=${c.persona||''} ${c.background||''}`).join('\n');
+const affLabel=a=>a<15?'冷淡':a<35?'疏远':a<60?'普通':a<80?'亲近':a<95?'喜欢':'深爱';
+const msgPreview=m=>!m?'':({voice:'[语音]',red:'[红包]',transfer:'[转账]',sticker:'[表情]',img:'[图片]',food:'[外卖]',narr:'(线下)'}[m.type]||'')+(['voice','narr','text',undefined].includes(m.type)?m.content:'');
+
+/* 世界书 */
+function worldFor(charId,text){
+  const hit=S.world.filter(w=>w.enabled&&(w.scope==='all'||w.scope===charId)&&(w.constant||(w.keys||'').split(/[,，、\s]+/).filter(Boolean).some(k=>text.includes(k))));
+  return hit.length?'【世界书】\n'+hit.map(w=>`- ${w.title}:${w.content}`).join('\n'):'';
+}
+
+/* ================= API ================= */
+const apiURL=()=>S.settings.baseUrl.replace(/\/+$/,'')+'/chat/completions';
+const apiHead=()=>({'Content-Type':'application/json','Authorization':'Bearer '+S.settings.apiKey});
+async function callAPI(messages,temperature){
+  if(!S.settings.apiKey)throw new Error('NOKEY');
+  const r=await fetch(apiURL(),{method:'POST',headers:apiHead(),body:JSON.stringify({model:S.settings.model,messages,temperature:temperature??Number(S.settings.temperature)})});
+  if(!r.ok)throw new Error('API '+r.status+':'+(await r.text()).slice(0,160));
+  const j=await r.json();return (j.choices?.[0]?.message?.content||'').trim();
+}
+/* 流式输出(SSE);服务端不支持时自动按普通 JSON 解析 */
+async function callStream(messages,onText){
+  if(!S.settings.apiKey)throw new Error('NOKEY');
+  const r=await fetch(apiURL(),{method:'POST',headers:apiHead(),body:JSON.stringify({model:S.settings.model,messages,temperature:Number(S.settings.temperature),stream:true})});
+  if(!r.ok)throw new Error('API '+r.status+':'+(await r.text()).slice(0,160));
+  if(!r.body||!r.body.getReader){const j=await r.json();const t=(j.choices?.[0]?.message?.content||'').trim();onText(t);return t}
+  const rd=r.body.getReader(),dec=new TextDecoder();let buf='',full='',raw='';
+  for(;;){
+    const {done,value}=await rd.read();if(done)break;
+    const chunk=dec.decode(value,{stream:true});raw+=chunk;buf+=chunk;
+    const lines=buf.split('\n');buf=lines.pop();
+    for(const ln of lines){
+      const s=ln.trim();if(!s.startsWith('data:'))continue;
+      const d=s.slice(5).trim();if(d==='[DONE]')continue;
+      try{const t=JSON.parse(d).choices?.[0]?.delta?.content;if(t){full+=t;onText(full)}}catch(e){}
+    }
+  }
+  if(!full){try{full=(JSON.parse(raw).choices?.[0]?.message?.content||'').trim();onText(full)}catch(e){}}
+  return full.trim();
+}
+const errText=e=>e.message==='Failed to fetch'?'请求失败:请检查接口地址,或该服务是否允许浏览器直接调用(CORS)':e.message;
+async function askJSON(prompt,fallback,quiet){
+  try{
+    const t=await callAPI([{role:'system',content:'你是内容生成器,只输出合法JSON,不要markdown代码块,不要多余文字。'},{role:'user',content:prompt}],1);
+    const m=t.match(/[\[{][\s\S]*[\]}]/);return JSON.parse(m?m[0]:t);
+  }catch(e){
+    if(e.message==='NOKEY'){if(!quiet)toast('未配置API,已使用演示内容');return fallback?fallback():null}
+    toast(errText(e).slice(0,80));return null;
+  }
+}
+const DEMO_CHAT=['(演示模式)收到~到「设置 → API 设置」填入接口,我就能真正回复啦。','嗯嗯,我在听。(演示模式:还没配置 API)','哈哈,继续说~(演示回复)'];
+const DEMO_MOMENTS=['今天天气真好 ☀️','突然好想吃火锅🍲','深夜emo一下…','又是元气满满的一天!'];
+const DEMO_CMTS=['哈哈不错!','我也想去~','赞一个👍','这也太好了吧'];
+const DEMO_REPLIES=['前排围观','楼主说得有道理','我觉得不一定,看情况吧','mark一下,回头细看'];
+const NOKEY_HINT='未配置 API:当前为演示回复。到「设置 → API 设置」填写后即可真实对话。';
+
+/* ================= 语音(朗读 / 识别) ================= */
+if('speechSynthesis' in window)speechSynthesis.getVoices();
+function speak(text,c){
+  if(!('speechSynthesis' in window))return toast('此浏览器不支持语音朗读');
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(String(text).replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,''));
+  u.lang='zh-CN';const v=c?.voice||{};
+  if(v.name){const f=speechSynthesis.getVoices().find(x=>x.name===v.name);if(f)u.voice=f}
+  u.rate=clamp(+v.rate||1,.5,2);u.pitch=clamp(+v.pitch||1,0,2);speechSynthesis.speak(u);
+}
+function dictate(cb){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return toast('此浏览器不支持语音识别,可直接打字');
+  const r=new SR();r.lang='zh-CN';r.onresult=e=>cb(e.results[0][0].transcript);r.onerror=()=>toast('没听清,再试一次');r.start();toast('请说话…');
+}
+
+/* ================= 界面基础:弹层 / 表单 ================= */
+const ui={app:null,sub:null,ret:null,board:'全部',foodTab:'shop',foodTo:null,cart:null,panel:null,voiceMode:false,live:null,peekId:null,peekTab:'diary',outCid:null,outPlace:'',outCustom:'',selMsg:null};
+const chatBusy={};let busy=false;
+const closeSheets=()=>document.querySelectorAll('.mask').forEach(e=>e.remove());
+function sheet(html,onMount){
+  const el=document.createElement('div');el.className='mask';el.innerHTML=`<div class="sheet">${html}</div>`;
+  el.onclick=e=>{if(e.target===el)el.remove()};$('#phone').appendChild(el);
+  onMount&&onMount(el.querySelector('.sheet'),()=>el.remove());return el;
+}
+function askText(title,ph='',val=''){
+  return new Promise(res=>sheet(`<h3>${esc(title)}</h3><textarea id="ta" rows="3" placeholder="${esc(ph)}">${esc(val)}</textarea><div class="row"><button class="btn ghost" data-x="no">取消</button><button class="btn" data-x="ok">确定</button></div>`,(s,close)=>{
+    const ta=$('#ta',s);ta.focus();
+    s.querySelector('[data-x=no]').onclick=()=>{close();res(null)};
+    s.querySelector('[data-x=ok]').onclick=()=>{const v=ta.value.trim();close();res(v||null)};
+  }));
+}
+function askConfirm(msg){
+  return new Promise(res=>sheet(`<h3>${esc(msg)}</h3><div class="row"><button class="btn ghost" data-x="no">取消</button><button class="btn danger" data-x="ok">确定</button></div>`,(s,close)=>{
+    s.querySelector('[data-x=no]').onclick=()=>{close();res(false)};
+    s.querySelector('[data-x=ok]').onclick=()=>{close();res(true)};
+  }));
+}
+function fieldsHTML(fields){
+  return fields.map(f=>{
+    const id='f_'+f.k,L=f.label?`<span class="fl">${f.label}</span>`:'';
+    if(f.type==='area')return `<label class="fld">${L}<textarea id="${id}" rows="${f.rows||3}" placeholder="${esc(f.ph||'')}">${esc(f.val??'')}</textarea></label>`;
+    if(f.type==='select')return `<label class="fld">${L}<select id="${id}">${f.opts.map(o=>`<option value="${esc(o[0])}" ${o[0]==f.val?'selected':''}>${esc(o[1])}</option>`).join('')}</select></label>`;
+    if(f.type==='check')return `<label class="chk"><input type="checkbox" id="${id}" ${f.val?'checked':''}> ${f.label}</label>`;
+    if(f.type==='img')return `<div class="fld" id="${id}">${L}<div class="imgrow"><div class="av ip">${f.val?`<img src="${f.val}">`:esc(f.ph||'＋')}</div><button type="button" class="btn ghost" data-pick>选择图片</button><button type="button" class="btn ghost" data-clr>清除</button></div></div>`;
+    return `<label class="fld">${L}<input id="${id}" type="${f.type||'text'}" ${f.step?`step="${f.step}"`:''} placeholder="${esc(f.ph||'')}" value="${esc(f.val??'')}"></label>`;
+  }).join('');
+}
+function bindForm(root,fields){
+  const vals={};
+  fields.filter(f=>f.type==='img').forEach(f=>{
+    vals[f.k]=f.val||'';
+    const box=root.querySelector('#f_'+f.k),prev=box.querySelector('.ip');
+    const show=()=>{prev.innerHTML=vals[f.k]?`<img src="${vals[f.k]}">`:esc(f.ph||'＋')};
+    box.querySelector('[data-pick]').onclick=async()=>{const d=await pickImage(f.opt||{square:true,size:240});if(d){vals[f.k]=d;show()}};
+    box.querySelector('[data-clr]').onclick=()=>{vals[f.k]='';show()};
+  });
+  return()=>{const o={};fields.forEach(f=>{const e=root.querySelector('#f_'+f.k);o[f.k]=f.type==='img'?vals[f.k]:f.type==='check'?e.checked:e.value});return o};
+}
+function form(title,fields,onOK,btns=[],okLabel='保存'){
+  sheet(`<h3>${title}</h3>${fieldsHTML(fields)}<div class="row">${btns.map((b,i)=>`<button class="btn ${b.cls||'ghost'}" data-b="${i}">${b.label}</button>`).join('')}<button class="btn ghost" data-x="no">取消</button><button class="btn" data-x="ok">${okLabel}</button></div>`,(s,close)=>{
+    const get=bindForm(s,fields);
+    s.querySelector('[data-x=no]').onclick=close;
+    s.querySelector('[data-x=ok]').onclick=()=>{if(onOK(get())!==false)close()};
+    btns.forEach((b,i)=>s.querySelector(`[data-b="${i}"]`).onclick=()=>b.fn(get(),close));
+  });
+}
+
+/* ================= 聊天:提示词 / 解析 ================= */
+const FIELDS=[['gender','性别'],['age','年龄'],['birthday','生日'],['job','身份/职业'],['persona','性格'],['looks','外貌'],['speech','说话风格/口癖'],['background','背景故事'],['relation','与用户的关系'],['callMe','对用户的称呼'],['taboo','雷点/禁忌'],['scenario','场景/世界观'],['example','对话示例']];
+const charSheet=c=>FIELDS.filter(f=>c[f[0]]).map(f=>`${f[1]}:${c[f[0]]}`).join('\n');
+function buildSystem(c,off,ctx){
+  const aff=c.aff??50;
+  const base=`你正在扮演「${c.name}」,对方是用户「${S.me.name}」。\n【角色档案】\n${charSheet(c)}\n【用户设定】${S.me.persona||'无'}\n${worldFor(c.id,ctx)}\n【当前】现在是 ${new Date().toLocaleString('zh-CN',{hour12:false})};你对用户的好感度为 ${aff}/100(${affLabel(aff)})。\n`;
+  if(off)return base+`【模式:线下见面】你和用户正处在同一个场景里。请用小说笔法描写:动作、神态、环境、心理(用第三人称写你扮演的角色,称用户为“你”),对白用「」。每次 120-300 字,推进剧情,不要替用户行动或说话,不要说自己是AI。可在末尾附带好感度标签 [好感+N] 或 [好感-N](N 为 1-5,不要频繁)。不要使用 ||| 和其他聊天标签。`;
+  return base+`【模式:手机线上聊天】
+- 完全以角色身份,像真人发微信一样简短自然,不要旁白,不要说自己是AI;每次发 1-4 条消息,用 ||| 分隔。
+- 偶尔、在情境合适时可使用特殊消息(必须单独成一条,格式严格):[语音]要说的话 / [红包:金额:留言] / [转账:金额:留言] / [表情:一个emoji] / [图片:画面描述] / [外卖:商品名]。金额是人民币数字。
+- 用户发来的 [语音]、[红包:..]、[转账:..]、[外卖:..]、[图片:..] 以及【系统事件】都是真实发生的事,请自然回应(收到红包要有反应)。
+- 可在末尾附好感度标签 [好感+N] 或 [好感-N](N 为 1-5,仅当对方言行明显影响你的心情时)。
+- 如果你被严重冒犯、真的很生气想拉黑对方,可单独输出 [拉黑];这是极端情况,不要轻易使用。`;
+}
+const msgText=m=>({voice:'[语音]'+m.content,red:`[红包:${m.amt}:${m.note||''}]`,transfer:`[转账:${m.amt}:${m.note||''}]`,sticker:`[表情:${m.content}]`,img:`[图片:${m.content}]`,food:`[外卖:${m.content}]`}[m.type]||m.content);
+function toAPI(log){
+  const out=[];
+  log.slice(-S.settings.history).forEach(m=>{
+    if(m.role==='sys'){if(m.ai)out.push({role:'user',content:'【系统事件】'+m.content});return}
+    if(m.fail)return;
+    out.push({role:m.role==='user'?'user':'assistant',content:msgText(m)});
+  });
+  const merged=[];
+  out.forEach(x=>{const l=merged[merged.length-1];if(l&&l.role===x.role)l.content+=(x.role==='assistant'?' ||| ':'\n')+x.content;else merged.push({...x})});
+  if(merged[0]?.role==='assistant')merged.unshift({role:'user',content:'(开始聊天)'});
+  return merged;
+}
+function parseReply(text,off){
+  let aff=0,block=false;
+  text=text.replace(/\[好感\s*([+\-＋－])\s*(\d+)\]/g,(_,s,n)=>{aff+=(/[-－]/.test(s)?-1:1)*Math.min(+n,5);return ''}).replace(/\[拉黑\]/g,()=>{block=true;return ''}).trim();
+  if(off)return{parts:text?[{type:'narr',content:text}]:[],aff,block};
+  const parts=[];
+  text.split('|||').map(s=>s.trim()).filter(Boolean).forEach(s=>{
+    let m;
+    if(m=s.match(/^\[语音\]\s*([\s\S]+)$/))parts.push({type:'voice',content:m[1].trim()});
+    else if(m=s.match(/^\[(红包|转账)[:：]\s*([\d.]+)\s*(?:[:：]\s*([\s\S]*?))?\]$/))parts.push({type:m[1]==='红包'?'red':'transfer',amt:clamp(parseFloat(m[2])||0,0.01,888),note:(m[3]||'').trim(),state:'unclaimed'});
+    else if(m=s.match(/^\[表情[:：]\s*([\s\S]+?)\]$/))parts.push({type:'sticker',content:m[1].trim()});
+    else if(m=s.match(/^\[图片[:：]\s*([\s\S]+?)\]$/))parts.push({type:'img',content:m[1].trim()});
+    else if(m=s.match(/^\[外卖[:：]\s*([\s\S]+?)\]$/))parts.push({type:'food',content:m[1].trim()});
+    else parts.push({type:'text',content:s});
+  });
+  return{parts,aff,block};
+}
+function applyReply(cid,text,off){
+  const c=charById(cid),log=chatLog(cid),{parts,aff,block}=parseReply(text,off);
+  parts.forEach((p,i)=>log.push({id:uid(),role:'assistant',from:cid,time:now()+i,...p}));
+  if(aff)c.aff=clamp((c.aff??50)+aff,0,100);
+  if(block){c.blockedMe=true;log.push({id:uid(),role:'sys',type:'sys',content:`${c.name} 已将你拉黑`,time:now()})}
+  const last=parts.slice().reverse().find(p=>p.type==='voice');
+  if(last&&S.settings.autoVoice)speak(last.content,c);
+}
+const liveText=t=>t.replace(/\[(好感|拉黑)[^\]]*\]/g,'').replace(/\[[^\]]*$/,'').replace(/\|\|\|/g,'\n').trim();
+function notify(cid){
+  const viewing=ui.app==='chat'&&ui.sub?.type==='chat'&&ui.sub.id===cid;
+  if(viewing)return;
+  M(cid).unread=(M(cid).unread||0)+1;
+  banner(chatTitle(cid),msgPreview(lastMsg(cid)),()=>acts.chat({id:cid}));
+}
+/* 核心:让角色基于当前聊天记录回复(用户消息、事件、重新生成都走这里) */
+async function aiReply(cid){
+  const c=charById(cid),meta=M(cid),log=chatLog(cid);
+  if(meta.blocked||chatBusy[cid])return;
+  const off=meta.mode==='offline';
+  chatBusy[cid]=true;ui.live={cid,text:''};refresh();
+  let text='',err=null;
+  try{
+    const ctx=log.slice(-S.settings.history).map(m=>m.content||'').join('\n');
+    const msgs=[{role:'system',content:buildSystem(c,off,ctx)},...toAPI(log)];
+    text=S.settings.stream?await callStream(msgs,t=>{if(ui.live){ui.live.text=t;renderLive()}}):await callAPI(msgs);
+  }catch(e){err=e}
+  ui.live=null;chatBusy[cid]=false;
+  if(err){
+    if(err.message==='NOKEY'){
+      text=off?'(演示模式)你们安静地对视了一会儿。到「设置 → API 设置」填写接口后,TA 才能真正回应你。':pick(DEMO_CHAT);
+      if(!log.some(m=>m.role==='sys'&&m.content.startsWith('未配置')))log.push({id:uid(),role:'sys',type:'sys',content:NOKEY_HINT,time:now()});
+    }else{log.push({id:uid(),role:'sys',type:'sys',content:'出错了:'+errText(err),time:now()});save();refresh();return}
+  }
+  applyReply(cid,text,off);notify(cid);save();refresh();
+}
+async function sendChat(cid,text,type='text',extra={}){
+  const c=charById(cid),m=M(cid);
+  if(m.blocked)return toast('你已拉黑TA,先解除拉黑');
+  const log=chatLog(cid);
+  log.push({id:uid(),role:'user',type,content:text,off:m.mode==='offline',time:now(),fail:!!c.blockedMe,...extra});
+  if(c.blockedMe){
+    if(!log.slice(-3).some(x=>x.role==='sys'&&x.content.startsWith('消息已发出')))log.push({id:uid(),role:'sys',type:'sys',content:'消息已发出,但被对方拒收了',time:now()});
+    save();refresh();return;
+  }
+  save();refresh();await aiReply(cid);
+}
+function chatEvent(cid,text,{react=true,hidden=false}={}){
+  chatLog(cid).push({id:uid(),role:'sys',type:'sys',ai:true,hidden,content:text,time:now()});save();refresh();
+  if(react&&S.settings.apiKey)aiReply(cid);
+}
+async function sendGroup(gid,text){
+  const g=groupById(gid),log=chatLog(gid);
+  log.push({id:uid(),role:'user',type:'text',content:text,time:now()});save();refresh();
+  chatBusy[gid]=true;ui.live={cid:gid,text:''};refresh();
+  const members=g.members.map(charById);
+  const transcript=log.filter(m=>m.role!=='sys').slice(-S.settings.history).map(m=>(m.role==='user'?S.me.name:charById(m.from).name)+':'+m.content).join('\n');
+  const data=await askJSON(`这是一个微信群「${g.name}」,成员:\n${members.map(c=>`id=${c.id} 名字=${c.name} 设定=${c.persona||''} ${c.speech||''}`).join('\n')}\n用户「${S.me.name}」的设定:${S.me.persona||'无'}\n${worldFor('',transcript)}\n最近聊天记录:\n${transcript}\n请让2-4位合适的成员依次回复用户的最新消息,符合各自性格,口语化、简短,成员之间可以互相接话。\n输出JSON数组:[{"id":"成员id","text":"内容"}]`,
+    ()=>members.slice(0,2).map(c=>({id:c.id,text:pick(DEMO_CHAT)})),true);
+  ui.live=null;chatBusy[gid]=false;
+  if(Array.isArray(data)){
+    data.forEach(d=>{if(g.members.includes(d.id)&&d.text)log.push({id:uid(),role:'assistant',type:'text',from:d.id,content:String(d.text),time:now()})});
+    if(!S.settings.apiKey&&!log.some(m=>m.role==='sys'&&m.content.startsWith('未配置')))log.push({id:uid(),role:'sys',type:'sys',content:NOKEY_HINT,time:now()});
+    notify(gid);
+  }
+  save();refresh();
+}
+
+/* ================= 钱包 ================= */
+function pay(amt,desc){if(S.wallet.balance+1e-9<amt){toast('余额不足,去「钱包」签到或充值');return false}S.wallet.balance=+(S.wallet.balance-amt).toFixed(2);S.wallet.records.unshift({id:uid(),time:now(),desc,amt:-amt});return true}
+function income(amt,desc){S.wallet.balance=+(S.wallet.balance+amt).toFixed(2);S.wallet.records.unshift({id:uid(),time:now(),desc,amt})}
+function moneyForm(kind,cid){
+  const name=kind==='red'?'红包':'转账';
+  form('发'+name,[{k:'amt',label:`金额(元) · 余额 ${money(S.wallet.balance)}`,type:'number',step:'0.01',val:kind==='red'?'8.88':'52.00'},{k:'note',label:'留言',val:kind==='red'?'恭喜发财,大吉大利':'请你喝奶茶'}],o=>{
+    const amt=parseFloat(o.amt);if(!(amt>0)){toast('请输入正确金额');return false}
+    if(!pay(amt,`${name}给 ${charById(cid).name}`))return false;
+    save();sendChat(cid,'',kind==='red'?'red':'transfer',{amt,note:o.note.trim(),state:'sent'});
+  },[],'塞钱进去');
+}
+
+/* ================= 朋友圈(圈子) ================= */
+async function withBusy(label,fn){if(busy){toast('上一个任务还在进行…');return}busy=true;toast(label);try{await fn()}finally{busy=false}}
+async function genMoments(){
+  await withBusy('好友们正在发动态…',async()=>{
+    if(!S.chars.length)return toast('先添加好友');
+    const recent=S.moments.slice(-5).map(m=>charById(m.authorId).name+':'+m.text).join('\n');
+    const data=await askJSON(`请为下列每个角色各写一条 Instagram 风格的动态:口语化 1-3 句文案,符合各自性格与生活;另给一个配图画面描述(10-20字,例如“窗台上的橘猫和半杯咖啡”)。彼此不要重复。\n${charsBrief()}\n${worldFor('',S.chars.map(c=>c.persona).join(' '))}\n最近已有动态(避免重复):\n${recent||'无'}\n输出JSON数组:[{"id":"角色id","text":"文案","pic":"配图描述"}]`,
+      ()=>S.chars.map(c=>({id:c.id,text:pick(DEMO_MOMENTS),pic:pick(['窗外的晚霞','桌上的咖啡','一只路过的猫'])})));
+    (Array.isArray(data)?data:[]).forEach(d=>{
+      if(!S.chars.find(c=>c.id===d.id)||!d.text)return;
+      const likes=S.chars.filter(c=>c.id!==d.id&&Math.random()<.4).map(c=>c.id);
+      S.moments.push({id:uid(),authorId:d.id,text:String(d.text),pic:d.pic?String(d.pic):'',time:now()-Math.floor(Math.random()*3600e3),likes,comments:[]});
+    });
+    save();refresh();toast('已更新');
+  });
+}
+async function reactMoment(p){
+  if(!S.chars.length)return;
+  const data=await askJSON(`用户「${S.me.name}」(设定:${S.me.persona||'无'})发了一条动态:「${p.text}」。\n请从下列角色中挑1-3位点赞并评论(评论口语化、简短、符合性格)。\n${charsBrief()}\n${worldFor('',p.text)}\n输出JSON数组:[{"id":"角色id","text":"评论"}]`,
+    ()=>S.chars.slice(0,2).map(c=>({id:c.id,text:pick(DEMO_CMTS)})),true);
+  (Array.isArray(data)?data:[]).forEach(d=>{
+    if(!S.chars.find(c=>c.id===d.id)||!d.text)return;
+    if(!p.likes.includes(d.id))p.likes.push(d.id);
+    p.comments.push({authorId:d.id,text:String(d.text),time:now()});
+  });
+  save();refresh();
+}
+async function replyComment(p,text){
+  if(p.authorId==='me'||!S.settings.apiKey)return;
+  const a=charById(p.authorId);
+  const d=await askJSON(`你是「${a.name}」(设定:${a.persona||''})。你发了动态:「${p.text}」,用户「${S.me.name}」评论:「${text}」。请以角色身份回复这条评论,一两句话。\n${worldFor(a.id,p.text+text)}\n输出JSON:{"text":"回复"}`,null,true);
+  if(d?.text){p.comments.push({authorId:p.authorId,text:String(d.text),time:now()});save();refresh()}
+}
+function postHTML(p){
+  const a=charById(p.authorId),likes=p.likes.map(i=>charById(i).name);
+  const media=p.img?`<img class="pimg" src="${p.img}">`:p.pic?`<div class="pph" style="--h:${hash(p.pic)%360}"><span>📷</span><p>${esc(p.pic)}</p></div>`:'';
+  return `<article class="ig"><div class="igh">${av(a,'sm')}<b>${esc(a.name)}</b><span>${fmt(p.time)}</span>${p.authorId==='me'?`<a data-act="mdel" data-id="${p.id}">删除</a>`:''}</div>${media}
+  <div class="iga"><a data-act="like" data-id="${p.id}">${p.likes.includes('me')?'❤️':'🤍'}</a><a data-act="cmt" data-id="${p.id}">💬</a></div>
+  ${likes.length?`<div class="igl">${esc(likes.length>3?likes.slice(0,3).join('、')+' 等 '+likes.length+' 人':likes.join('、'))} 觉得很赞</div>`:''}
+  <div class="igc"><b>${esc(a.name)}</b>${esc(p.text)}</div>${p.comments.map(c=>`<div class="igc"><b>${esc(charById(c.authorId).name)}</b>${esc(c.text)}</div>`).join('')}</article>`;
+}
+
+/* ================= 论坛 ================= */
+const DEMO_POSTS=b=>[{id:'npc:路人甲',title:`【${b}】新人报到,大家多关照`,content:'刚来的,先逛逛。(演示内容:配置 API 后这里会由模型生成)'},{id:'npc:夜猫子',title:'有没有人也睡不着?',content:'凌晨三点,在线的扣1。'}];
+async function genForum(){
+  await withBusy('网友们正在刷帖…',async()=>{
+    const board=ui.board==='全部'?pick(S.forum.boards):ui.board;
+    const titles=S.forum.posts.slice(-8).map(p=>p.title).join(' / ');
+    const data=await askJSON(`论坛板块「${board}」。请生成3个有趣的新帖子(标题+正文2-4句)。作者可以是下列角色(用其id),也可以是虚构路人网友(用"npc:昵称")。语气像真实论坛,可以有梗、争论、求助。\n${charsBrief()}\n${worldFor('',board+titles+S.chars.map(c=>c.persona).join(' '))}\n已有帖子标题(避免重复):${titles||'无'}\n输出JSON数组:[{"id":"作者","title":"标题","content":"正文"}]`,()=>DEMO_POSTS(board));
+    (Array.isArray(data)?data:[]).forEach(d=>{
+      if(!d.title)return;
+      const ok=S.chars.find(c=>c.id===d.id)||String(d.id).startsWith('npc:');
+      S.forum.posts.push({id:uid(),board,authorId:ok?d.id:'npc:匿名网友',title:String(d.title),content:String(d.content||''),time:now()-Math.floor(Math.random()*7200e3),replies:[]});
+    });
+    save();refresh();toast('刷到新帖子了');
+  });
+}
+async function genReplies(p,quiet){
+  const ctx=p.replies.slice(-6).map(r=>charById(r.authorId).name+':'+r.text).join('\n');
+  const data=await askJSON(`论坛帖子「${p.title}」(板块${p.board},楼主${charById(p.authorId).name}):${p.content}\n已有回复:\n${ctx||'无'}\n请生成2-4条新回复,可来自下列角色(用id)或路人网友("npc:昵称"),可互相接话、玩梗、抬杠,每条1-2句。\n${charsBrief()}\n${worldFor('',p.title+p.content+ctx)}\n输出JSON数组:[{"id":"作者","text":"回复"}]`,()=>[{id:'npc:吃瓜群众',text:pick(DEMO_REPLIES)}],quiet);
+  (Array.isArray(data)?data:[]).forEach(d=>{
+    if(!d.text)return;
+    const ok=S.chars.find(c=>c.id===d.id)||String(d.id).startsWith('npc:');
+    p.replies.push({id:uid(),authorId:ok?d.id:'npc:路人',text:String(d.text),time:now()});
+  });
+  save();refresh();
+}
+function renderPost(){
+  const box=$('#pbody');if(!box||ui.sub?.type!=='post')return;
+  const p=S.forum.posts.find(x=>x.id===ui.sub.id);if(!p)return;
+  const a=charById(p.authorId);
+  box.innerHTML=`<div class="detail"><h2>${esc(p.title)}</h2><div class="who2">${av(a,'sm')}<div><b>${esc(a.name)}</b>${esc(p.board)} · ${fmt(p.time)}</div></div><div class="tx">${esc(p.content)}</div></div>`+
+  (p.replies.length?p.replies.map((r,i)=>{const b=charById(r.authorId);return `<div class="rp">${av(b,'sm')}<div class="grow"><div style="font-size:13px;font-weight:600">${esc(b.name)}</div><div class="tx" style="font-size:14.5px">${esc(r.text)}</div><div class="fl" style="margin-top:4px">${i+2} 楼 · ${fmt(r.time)}</div></div></div>`}).join(''):empty('还没有回复,来抢沙发,或点右上角 🤖 召唤网友'));
+}
+
+/* ================= 外卖 ================= */
+const SHOPS=[
+  {n:'深夜食堂',e:'🍜',items:[['招牌牛肉面',28],['照烧鸡腿饭',26],['手工煎饺',12],['味噌汤',8]]},
+  {n:'奶茶研究所',e:'🧋',items:[['杨枝甘露',22],['杨梅冰美式',19],['芋泥波波奶茶',24],['热可可',16]]},
+  {n:'甜点工坊',e:'🍰',items:[['提拉米苏',32],['草莓千层',36],['焦糖布丁',14],['可颂',12]]},
+  {n:'烧烤夜市',e:'🍢',items:[['烤串拼盘',45],['麻辣小龙虾',88],['冰镇汽水',6],['烤玉米',9]]}
+];
+function deliver(id){
+  const o=S.orders.find(x=>x.id===id);if(!o||o.status==='done')return;
+  o.status='done';save();
+  const names=o.items.map(i=>i.n+(i.q>1?'×'+i.q:'')).join('、');
+  if(o.to==='me'){banner('外卖到了 🍜',names,()=>acts.open({id:'food'}));if(ui.app==='food')refresh();}
+  else{
+    const c=charById(o.to);
+    if(c&&!M(c.id).blocked&&!c.blockedMe){
+      chatLog(c.id).push({id:uid(),role:'user',type:'food',content:names,note:o.note,time:now()});
+      chatEvent(c.id,`${S.me.name}给你点的外卖「${names}」刚刚送到了${o.note?',备注:'+o.note:''}`);
+    }
+    banner('外卖已送达',`${c?.name||'TA'} 收到了 ${names}`);if(ui.app==='food')refresh();
+  }
+}
+function schedule(o){setTimeout(()=>deliver(o.id),Math.max(500,o.eta-now()))}
+
+/* ================= 外出 / 查手机 ================= */
+const PLACES=['咖啡馆','公园散步','电影院','海边','游乐园','美术馆','夜市','图书馆','山顶看日出','雨天街头'];
+async function goOut(){
+  const cid=ui.outCid||S.chars[0]?.id,place=(ui.outCustom||'').trim()||ui.outPlace;
+  if(!cid)return toast('先添加好友');if(!place)return toast('选一个地点,或自定义');
+  const c=charById(cid);
+  if(M(cid).blocked||c.blockedMe)return toast('你们现在没法一起出门…');
+  await withBusy('出发中…',async()=>{
+    let story;
+    try{
+      story=await callAPI([{role:'system',content:buildSystem(c,true,place)},{role:'user',content:`【系统事件】你和${S.me.name}一起去「${place}」。请以小说笔法写一段这次外出的经历(细腻写出环境、互动与心理,要有一个小插曲或心动瞬间),200-350字,不要替用户说话。`}]);
+    }catch(e){
+      if(e.message==='NOKEY')story=`(演示)你和${c.name}一起去了${place}。风很轻,时间也慢了下来……配置 API 后,这里会生成完整的外出故事。`;
+      else return toast(errText(e).slice(0,80));
+    }
+    const {parts,aff}=parseReply(story,true);story=parts[0]?.content||story;
+    if(aff)c.aff=clamp((c.aff??50)+aff,0,100);
+    S.outings.unshift({id:uid(),cid,place,story,time:now()});
+    const log=chatLog(cid);
+    log.push({id:uid(),role:'sys',type:'sys',ai:true,content:`你和${S.me.name}一起去了「${place}」。`,time:now()});
+    log.push({id:uid(),role:'assistant',type:'narr',from:cid,content:story,time:now()});
+    M(cid).unread=(M(cid).unread||0)+1;save();refresh();toast('回来啦,看看足迹');
+  });
+}
+async function peekGen(cid){
+  const c=charById(cid);
+  await withBusy('正在偷看…',async()=>{
+    const d=await askJSON(`你是「${c.name}」。\n${charSheet(c)}\n你对用户「${S.me.name}」的好感度为 ${c.aff??50}/100。\n请生成你手机里的内容:真实、有生活细节,并隐约透露对用户的态度(不要太直白)。\n输出JSON:{"diary":"今天的日记,150字以内","searches":["5条最近的搜索记录"],"memos":[{"title":"备忘录标题","text":"内容"},{"title":"","text":""},{"title":"","text":""}],"chats":[{"who":"联系人","text":"最近一条聊天内容"},{"who":"","text":""},{"who":"","text":""}]}`,
+      ()=>({diary:'(演示)今天又熬夜了。在想一个人到底在不在意我……配置 API 后这里会是完整日记。',searches:['怎么自然地约人出门','附近好吃的火锅','失眠怎么办','送什么礼物不会尴尬','今天适合穿什么'],memos:[{title:'待办',text:'买猫粮、回消息、整理歌单'},{title:'备忘',text:'下周三别忘了他的生日'},{title:'灵感',text:'下雨天的歌词:路灯把影子拉得很长'}],chats:[{who:'妈',text:'最近有按时吃饭吗'},{who:'工作群',text:'明天十点开会'},{who:'老朋友',text:'周末出来坐坐?'}]}));
+    if(d){S.phones[cid]={...d,time:now()};save();refresh()}
+  });
+}
+
+/* ================= 角色卡导入 / 导出 ================= */
+function importCard(raw){
+  let o=raw;
+  if(raw._type==='ai-phone-char'){
+    const c={...raw.char,id:'c'+uid()};
+    (raw.world||[]).forEach(w=>S.world.push({...w,id:uid(),scope:c.id}));return c;
+  }
+  if(o.data&&(o.spec||o.data.name))o=o.data;
+  const c={id:'c'+uid(),aff:50,name:o.name||'未命名',avatar:'🙂',signature:o.signature||'',gender:o.gender||'',age:o.age||'',birthday:o.birthday||'',job:o.job||'',
+    persona:[o.personality,o.persona].filter(Boolean).join('\n'),looks:o.looks||'',speech:o.speech||'',background:[o.description,o.background].filter(Boolean).join('\n'),
+    relation:o.relation||'',callMe:o.callMe||'',taboo:o.taboo||'',scenario:o.scenario||'',greeting:o.first_mes||o.greeting||'',example:o.mes_example||o.example||'',voice:{}};
+  const book=o.character_book?.entries;
+  if(Array.isArray(book))book.forEach(e=>{if(e.content)S.world.push({id:uid(),title:e.comment||e.name||'条目·'+c.name,keys:(e.keys||[]).join(','),content:e.content,scope:c.id,constant:!!e.constant,enabled:e.enabled!==false})});
+  return c;
+}
+function exportChar(c){
+  const world=S.world.filter(w=>w.scope===c.id).map(({id,scope,...w})=>w);
+  const{id,blockedMe,...rest}=c;
+  download(`${c.name}-角色档案.json`,JSON.stringify({_type:'ai-phone-char',char:rest,world},null,1));
+}
+function charForm(c){
+  const v=c?.voice||{};
+  const voices=('speechSynthesis' in window?speechSynthesis.getVoices():[]).filter(x=>/zh|cmn|yue/i.test(x.lang)).map(x=>[x.name,`${x.name} (${x.lang})`]);
+  if(v.name&&!voices.some(x=>x[0]===v.name))voices.push([v.name,v.name]);
+  const F=[
+    {k:'avatarImg',type:'img',label:'头像(上传图片)',val:isImg(c?.avatar)?c.avatar:'',ph:'头像'},
+    {k:'emoji',label:'或使用 emoji / 文字头像',val:isImg(c?.avatar)?'':(c?.avatar||'🙂')},
+    {k:'name',label:'名字',val:c?.name},{k:'signature',label:'个性签名',val:c?.signature},
+    {k:'gender',label:'性别',val:c?.gender},{k:'age',label:'年龄',val:c?.age},{k:'birthday',label:'生日',val:c?.birthday},{k:'job',label:'身份 / 职业',val:c?.job},
+    {k:'persona',label:'性格',type:'area',val:c?.persona},{k:'looks',label:'外貌',type:'area',rows:2,val:c?.looks},
+    {k:'speech',label:'说话风格 / 口癖',type:'area',rows:2,val:c?.speech},{k:'background',label:'背景故事',type:'area',rows:4,val:c?.background},
+    {k:'relation',label:'与我的关系',val:c?.relation},{k:'callMe',label:'对我的称呼',val:c?.callMe},{k:'taboo',label:'雷点 / 禁忌',val:c?.taboo},
+    {k:'scenario',label:'场景 / 世界观补充',type:'area',rows:2,val:c?.scenario},{k:'greeting',label:'开场白(第一次聊天发送)',val:c?.greeting},
+    {k:'example',label:'对话示例(教 TA 怎么说话)',type:'area',rows:3,val:c?.example,ph:'我:早安\nTA:早…昨晚又熬夜了。'},
+    {k:'vname',label:'语音音色(朗读 TA 的语音消息)',type:'select',val:v.name||'',opts:[['','系统默认'],...voices]},
+    {k:'vrate',label:'语速(0.5-2)',type:'number',step:'0.1',val:v.rate||1},{k:'vpitch',label:'音调(0-2)',type:'number',step:'0.1',val:v.pitch||1},
+    {k:'chatBg',type:'img',label:'专属聊天壁纸',val:c?.chatBg||'',ph:'壁纸',opt:{w:600,h:1304,q:.78}}
+  ];
+  form(c?'编辑档案':'新建档案',F,o=>{
+    if(!o.name.trim()){toast('名字不能为空');return false}
+    const d={...o,avatar:o.avatarImg||o.emoji||'🙂',voice:{name:o.vname,rate:parseFloat(o.vrate)||1,pitch:parseFloat(o.vpitch)||1}};
+    ['avatarImg','emoji','vname','vrate','vpitch'].forEach(k=>delete d[k]);
+    if(c)Object.assign(c,d);else S.chars.push({id:'c'+uid(),aff:50,...d});
+    save();refresh();
+  },[{label:'试听',fn:o=>speak('你好呀,今天过得怎么样?',{voice:{name:o.vname,rate:+o.vrate,pitch:+o.vpitch}})}]);
+}
+function worldForm(w){
+  form(w?'编辑条目':'新建条目',[
+    {k:'title',label:'标题',val:w?.title},{k:'keys',label:'触发关键词(逗号分隔)',val:w?.keys,ph:'例如:星河市,雨夜'},
+    {k:'content',label:'内容',type:'area',rows:5,val:w?.content},
+    {k:'scope',label:'作用范围',type:'select',val:w?.scope||'all',opts:[['all','全局(所有好友)'],...S.chars.map(c=>[c.id,'仅 '+c.name])]},
+    {k:'constant',label:'常驻(无需关键词,始终加入)',type:'check',val:w?.constant},{k:'enabled',label:'启用',type:'check',val:w?w.enabled:true}
+  ],o=>{
+    if(!o.title.trim()||!o.content.trim()){toast('标题和内容必填');return false}
+    if(w)Object.assign(w,o);else S.world.push({id:uid(),...o});save();refresh();
+  },w?[{label:'删除',cls:'danger',fn:(_,close)=>{S.world=S.world.filter(x=>x!==w);save();close();refresh()}}]:[]);
+}
+
+/* ================= 渲染:主屏 ================= */
+const APPS=[
+  {id:'chat',name:'消息',emoji:'💬'},{id:'moments',name:'圈子',emoji:'📷'},{id:'forum',name:'论坛',emoji:'🗂️'},{id:'contacts',name:'通讯录',emoji:'🪪'},
+  {id:'wallet',name:'钱包',emoji:'👛'},{id:'food',name:'外卖',emoji:'🍜'},{id:'out',name:'外出',emoji:'🧭'},{id:'peek',name:'查手机',emoji:'🔍'},
+  {id:'world',name:'世界书',emoji:'📖'},{id:'style',name:'美化',emoji:'🎨'},{id:'settings',name:'设置',emoji:'⚙️'}
+];
+const DOCK=['chat','moments','out','settings'];
+const appInfo=id=>({...APPS.find(a=>a.id===id),...(S.style.icons[id]||{})});
+const unreadTotal=()=>Object.values(S.meta).reduce((n,m)=>n+(m.unread||0),0);
+function cell(id){
+  const a=appInfo(id),badge=id==='chat'&&unreadTotal()?`<span class="badge">${unreadTotal()}</span>`:'';
+  return `<div class="cell" data-act="open" data-id="${id}"><div class="ic">${a.img?`<img src="${a.img}">`:esc(a.emoji)}${badge}</div><span class="lb">${esc(a.name)}</span></div>`;
+}
+function renderHome(){
+  const st=S.style,h=$('#home');
+  h.innerHTML=`<div class="wid"><div class="wph" data-act="widimg">${st.widgetImg?`<img src="${st.widgetImg}">`:'点击添加照片'}</div>
+    <div class="wcol"><div class="wcard"><b id="hclock"></b><span id="hdate"></span></div><div class="wcard note" data-act="widnote">${esc(st.widgetNote||'点击写点什么')}</div></div></div>
+    <div class="grid">${APPS.filter(a=>!DOCK.includes(a.id)).map(a=>cell(a.id)).join('')}</div>
+    <div class="dock">${DOCK.map(cell).join('')}</div>`;
+  tick();
+}
+function applyStyle(){
+  const p=$('#phone'),st=S.style;
+  p.dataset.theme=st.dark?'dark':'light';p.dataset.bubble=st.bubble;p.dataset.shape=st.shape;
+  p.style.setProperty('--accent',st.accent);p.style.setProperty('--fs',{sm:'14px',md:'15px',lg:'17px'}[st.font]);
+  const hm=$('#home');hm.style.background=bgCSS(st.wall);hm.className='t-'+st.homeText;
+  $('#sb').classList.toggle('t-light',!ui.app&&st.homeText==='light');
+  $('#hbar').style.setProperty('--hbc',ui.app?'var(--ink)':(st.homeText==='light'?'#fff':'#1c1c1e'));
+}
+function tick(){
+  const d=new Date(),t=d.toTimeString().slice(0,5);
+  const a=$('#sbtime'),b=$('#hclock'),c=$('#hdate');
+  if(a)a.textContent=t;if(b)b.textContent=t;if(c)c.textContent=d.toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'long'});
+}
+
+/* ================= 渲染:应用 ================= */
+const bar=(title,o={})=>`<div class="bar"><div class="l">${o.back===false?'':'<button data-act="back">‹</button>'}</div><h1>${esc(title)}</h1><div class="r">${o.right||''}</div></div>`;
+const empty=t=>`<div class="empty">${esc(t)}</div>`;
+const seg=(act,cur,opts)=>`<div class="seg">${opts.map(o=>`<span class="${String(o[0])===String(cur)?'on':''}" data-act="${act}" data-id="${o[0]}">${o[1]}</span>`).join('')}</div>`;
+const tg=(on,act,id='')=>`<span class="tg ${on?'on':''}" data-act="${act}" data-id="${id}"></span>`;
+const views={},hooks={};
+
+views.chat=()=>{
+  const items=[...S.chars.map(c=>({id:c.id,name:c.name,c})),...S.groups.map(g=>({id:g.id,name:g.name,g}))].map(x=>({...x,l:lastMsg(x.id)})).sort((a,b)=>(b.l?.time||0)-(a.l?.time||0));
+  return bar('消息',{back:false,right:'<button data-act="open" data-id="contacts">✎</button>'})+`<div class="scroll">${items.length?items.map(x=>{
+    const m=M(x.id),flag=x.c?.blockedMe?'· 已把你拉黑':m.blocked?'· 已拉黑':'';
+    return `<div class="item" data-act="chat" data-id="${x.id}">${x.g?av({avatar:'👥'}):av(x.c)}<div class="grow"><div class="t1">${esc(x.name)}<span class="time">${x.l?fmt(x.l.time):''}</span></div><div class="t2">${esc(flag+' '+(x.l?msgPreview(x.l):'点击开始聊天')).trim()}</div></div>${m.unread?'<span class="dot"></span>':''}</div>`;
+  }).join(''):empty('还没有联系人,到「通讯录」添加好友')}</div>`;
+};
+views['chat:chat']=()=>`<div id="chead"></div><div id="msgs" class="scroll"></div><div id="panel"></div><div id="notice"></div><div class="composer"><button class="cb" data-act="plus">＋</button><textarea id="inp" rows="1"></textarea><button class="cb" id="dict">🎙</button><button class="cb send" id="send">↑</button></div>`;
+hooks['chat:chat']=()=>{
+  const id=ui.sub.id,inp=$('#inp');
+  const go=()=>{
+    const v=inp.value.trim();if(!v)return;if(chatBusy[id])return toast('对方还在回复…');
+    inp.value='';inp.style.height='';
+    isGroup(id)?sendGroup(id,v):sendChat(id,v,ui.voiceMode?'voice':'text');
+  };
+  $('#send').onclick=go;
+  $('#dict').onclick=()=>dictate(t=>{inp.value+=t;inp.focus()});
+  inp.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();go()}};
+  inp.oninput=()=>{inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,100)+'px'};
+  renderChatBar();renderPanel();renderMsgs();
+};
+function renderChatBar(){
+  if(ui.sub?.type!=='chat')return;
+  const id=ui.sub.id,g=isGroup(id),c=g?null:charById(id),m=M(id);
+  $('#chead').innerHTML=`<button class="hb" data-act="back">‹</button><div ${g?'':`data-act="profile" data-id="${id}"`}>${g?av({avatar:'👥'},'sm'):av(c,'sm')}</div>
+   <div class="hn"><b>${esc(chatTitle(id))}</b><small>${g?esc(groupById(id).members.map(i=>charById(i).name).join('、')):esc(c.blockedMe?'已将你拉黑':m.blocked?'已被你拉黑':(c.signature||c.job||'在线'))}</small></div>
+   ${g?'':`<button class="pill ${m.mode==='offline'?'on':''}" data-act="mode">${m.mode==='offline'?'线下':'线上'}</button>`}<button class="hb" data-act="chatmenu">⋯</button>`;
+  const inp=$('#inp'),dead=m.blocked;
+  inp.disabled=dead;inp.classList.toggle('vm',ui.voiceMode&&!g);
+  inp.placeholder=dead?'已拉黑':m.mode==='offline'&&!g?'描述你的动作或对白…':ui.voiceMode&&!g?'输入内容,将以语音消息发送':'输入消息…';
+  $('#notice').innerHTML=dead?'你已拉黑TA · <a data-act="unblock">解除拉黑</a>':c?.blockedMe?'对方已将你拉黑 · <a data-act="friendreq">发送好友申请</a>':'';
+  applyBgs();
+}
+function renderPanel(){
+  const p=$('#panel');if(!p||ui.sub?.type!=='chat')return;
+  const id=ui.sub.id;
+  if(!ui.panel){p.innerHTML='';p.style.display='none';return}
+  p.style.display='';
+  if(ui.panel==='emoji'){p.innerHTML=`<div class="emos">${EMOJIS.map(e=>`<span data-act="emo" data-id="${e}">${e}</span>`).join('')}</div>`;return}
+  const it=isGroup(id)?[['emoji','🙂','表情']]:[['red','🧧','红包'],['transfer','💸','转账'],['voice','🎙️',ui.voiceMode?'语音·开':'语音'],['poke','👋','拍一拍'],['emoji','🙂','表情'],['food','🍜','外卖'],['outing','🧭','外出']];
+  p.innerHTML=`<div class="pgrid">${it.map(x=>`<div class="pi ${x[0]==='voice'&&ui.voiceMode?'on':''}" data-act="pl" data-id="${x[0]}"><i>${x[1]}</i>${x[2]}</div>`).join('')}</div>`;
+}
+const EMOJIS=['😀','😂','🥹','😍','😘','😭','😡','🥺','😴','🤔','😏','🙄','👍','👏','🙏','💪','❤️','💔','🔥','🎉','🌹','🍺','☕','🌙'];
+function applyBgs(){
+  const box=$('#msgs');if(!box||ui.sub?.type!=='chat')return;
+  const id=ui.sub.id,c=isGroup(id)?null:charById(id);
+  box.style.background=bgCSS(M(id).bg||c?.chatBg||S.style.chatBg)||'';
+}
+function msgHTML(m,id,g){
+  if(m.role==='sys')return `<div class="sysmsg">${esc(m.content)}</div>`;
+  const me=m.role==='user',a=me?S.me:charById(m.from||id),off=!g&&(m.type==='narr'||m.off);
+  if(m.type==='narr')return `<div class="narr" data-mid="${m.id}">${esc(m.content)}</div>`;
+  if(me&&m.off&&(m.type==='text'||!m.type))return `<div class="youline" data-mid="${m.id}">${esc(m.content)}</div>`;
+  const avh=me||g?av(a,'sm'):`<div data-act="poke" data-id="${id}">${av(a,'sm')}</div>`;
+  const who=g&&!me?`<div class="who">${esc(a.name)}</div>`:'';
+  let body;
+  switch(m.type){
+    case 'voice':{const s=Math.max(1,Math.ceil(m.content.length/4));body=`<div class="bub voice" data-act="voice" data-mid="${m.id}" style="min-width:${Math.min(60+s*10,220)}px"><span>▶</span><span class="wave"></span><b>${s}″</b></div>${m.show?`<div class="vtext">${esc(m.content)}</div>`:''}`;break}
+    case 'red':case 'transfer':{
+      const red=m.type==='red',claimable=!me&&m.state!=='claimed',done=m.state==='claimed';
+      body=`<div class="money ${red?'':'tr'} ${done?'done':''}" ${claimable?`data-act="claim" data-mid="${m.id}"`:''}><div class="nt">${red?'🧧':'💸'} ${esc(m.note||(red?'恭喜发财':'转账'))}</div><div class="amt">${money(m.amt)}</div><small>${red?'红包':'转账'} · ${me?'已发送':done?'已领取':'点击领取'}</small></div>`;break}
+    case 'sticker':body=`<div class="stk">${esc(m.content)}</div>`;break;
+    case 'img':body=`<div class="card2"><b>📷 图片</b>${esc(m.content)}</div>`;break;
+    case 'food':body=`<div class="card2"><b>🍜 ${me?'你给TA点了外卖':'TA 给你点了外卖'}</b>${esc(m.content)}${m.note?`<br><span style="color:var(--sub)">备注:${esc(m.note)}</span>`:''}</div>`;break;
+    default:body=`<div class="bub">${esc(m.content)}</div>`;
+  }
+  return `<div class="m ${me?'me':''}" >${avh}<div class="mc" data-mid="${m.id}">${who}${body}${m.fail?'<div class="who" style="color:var(--like);text-align:right">❗ 发送失败,对方已将你拉黑</div>':''}</div></div>`;
+}
+function renderMsgs(){
+  const box=$('#msgs');if(!box||ui.sub?.type!=='chat')return;
+  const id=ui.sub.id,g=isGroup(id),off=!g&&M(id).mode==='offline';
+  let prev=0,h='';
+  chatLog(id).forEach(m=>{
+    if(m.hidden)return;
+    if(m.time-prev>6e5)h+=`<div class="sysmsg">${fmt(m.time)}</div>`;
+    prev=m.time;h+=msgHTML(m,id,g);
+  });
+  if(ui.live?.cid===id)h+=off?`<div class="narr" id="live">…</div>`:`<div class="m">${av(g?{avatar:'💬'}:charById(id),'sm')}<div class="mc"><div class="bub" id="live">…</div></div></div>`;
+  box.innerHTML=h;box.scrollTop=box.scrollHeight;
+}
+function renderLive(){const e=$('#live');if(e&&ui.live)e.textContent=liveText(ui.live.text)||'…';const b=$('#msgs');if(b)b.scrollTop=b.scrollHeight}
+
+views.moments=()=>{
+  const posts=[...S.moments].sort((a,b)=>b.time-a.time);
+  const stories=S.chars.map(c=>{const has=S.moments.some(p=>p.authorId===c.id&&now()-p.time<2*864e5);return `<div class="story" data-act="story" data-id="${c.id}"><div class="ring ${has?'on':''}">${av(c,'md')}</div><small>${esc(c.name)}</small></div>`}).join('');
+  return bar('圈子',{back:false,right:'<button data-act="mgen">✨</button><button data-act="mpost">＋</button>'})+`<div class="scroll"><div class="stories"><div class="story" data-act="mpost"><div class="ring me">${av(S.me,'md')}<i>＋</i></div><small>发动态</small></div>${stories}</div>${posts.length?posts.map(postHTML).join(''):empty('还没有动态。点 ✨ 让好友发动态,或点 ＋ 自己发一条(可以配照片)')}</div>`;
+};
+views.forum=()=>{
+  const boards=['全部',...S.forum.boards];
+  const posts=S.forum.posts.filter(p=>ui.board==='全部'||p.board===ui.board).sort((a,b)=>b.time-a.time);
+  return bar('论坛',{back:false,right:'<button data-act="fgen">✨</button><button data-act="fpost">✎</button>'})+`<div class="chips">${boards.map(b=>`<span class="chip ${b===ui.board?'on':''}" data-act="fboard" data-id="${esc(b)}">${esc(b)}</span>`).join('')}<span class="chip" data-act="fnewboard">＋板块</span></div><div class="scroll">${posts.length?posts.map(p=>`<div class="fp" data-act="fopen" data-id="${p.id}"><div class="ft">${esc(p.title)}</div><div class="fc">${esc(p.content)}</div><div class="fm"><span>${esc(charById(p.authorId).name)}</span><span>${esc(p.board)}</span><span>💬 ${p.replies.length}</span><span>${fmt(p.time)}</span></div></div>`).join(''):empty('这个板块还很冷清。点 ✨ 让大家来刷帖,或点 ✎ 发第一帖')}</div>`;
+};
+views['forum:post']=()=>bar('帖子',{right:'<button data-act="fsummon">🤖</button>'})+'<div class="scroll" id="pbody"></div><div class="composer"><textarea id="rin" rows="1" placeholder="回复…"></textarea><button class="cb send" id="rsend">↑</button></div>';
+hooks['forum:post']=()=>{
+  const rin=$('#rin'),p=S.forum.posts.find(x=>x.id===ui.sub.id);
+  const go=()=>{const v=rin.value.trim();if(!v||!p)return;rin.value='';p.replies.push({id:uid(),authorId:'me',text:v,time:now()});save();renderPost();$('#pbody').scrollTop=1e9;if(S.settings.apiKey)genReplies(p,true)};
+  $('#rsend').onclick=go;rin.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();go()}};renderPost();
+};
+views.contacts=()=>bar('通讯录',{back:false,right:'<button data-act="cadd">＋</button>'})+`<div class="scroll">
+  ${S.groups.length?'<div class="sec">群聊</div>'+S.groups.map(g=>`<div class="item" data-act="chat" data-id="${g.id}">${av({avatar:'👥'})}<div class="grow"><div class="t1">${esc(g.name)}</div><div class="t2">${esc(g.members.map(i=>charById(i).name).join('、'))}</div></div></div>`).join(''):''}
+  <div class="sec">好友 ${S.chars.length}</div>
+  ${S.chars.length?S.chars.map(c=>`<div class="item" data-act="profile" data-id="${c.id}">${av(c)}<div class="grow"><div class="t1">${esc(c.name)}</div><div class="t2">${esc(c.signature||c.job||c.persona||'')}</div></div></div>`).join(''):empty('点右上角 ＋ 新建档案、AI 生成或导入角色卡')}</div>`;
+views['contacts:char']=()=>{
+  const c=charById(ui.sub.id),a=c.aff??50,m=M(c.id),n=Math.round(a/20);
+  return bar('档案',{right:`<button data-act="cedit" data-id="${c.id}">✎</button>`})+`<div class="scroll"><div class="prof">${av(c,'xl')}<h2>${esc(c.name)}</h2><div class="sig">${esc(c.signature||'')}</div>
+  <div class="aff"><b>${'♥'.repeat(n)}${'♡'.repeat(5-n)}</b><br>好感 ${a} · ${affLabel(a)}${c.blockedMe?' · 已把你拉黑':''}</div>
+  <div class="btnrow"><button class="btn" data-act="chat" data-id="${c.id}">发消息</button><button class="btn ghost" data-act="peekgo" data-id="${c.id}">查手机</button><button class="btn ghost" data-act="cblock" data-id="${c.id}">${m.blocked?'解除拉黑':'拉黑'}</button></div></div>
+  <div class="kv">${FIELDS.filter(f=>c[f[0]]).map(f=>`<div><small>${f[1]}</small>${esc(c[f[0]])}</div>`).join('')||'<div><small>档案</small>还没有填写,点右上角 ✎ 编辑</div>'}</div>
+  <div class="btnrow" style="margin-bottom:24px"><button class="btn ghost" data-act="cexport" data-id="${c.id}">导出角色卡</button><button class="btn danger" data-act="cdel" data-id="${c.id}">删除</button></div></div>`;
+};
+views.wallet=()=>bar('钱包',{back:false})+`<div class="scroll"><div class="balance"><small>零钱余额</small><b>${money(S.wallet.balance)}</b><div class="btnrow"><button class="btn" data-act="sign">${S.wallet.lastSign===new Date().toDateString()?'今日已签到':'每日签到'}</button><button class="btn ghost" data-act="topup">充值</button></div></div>
+  <div class="sec">账单</div>${S.wallet.records.length?S.wallet.records.slice(0,60).map(r=>`<div class="item" style="cursor:default"><div class="grow"><div class="t1">${esc(r.desc)}</div><div class="t2">${fmt(r.time)}</div></div><b style="color:${r.amt>0?'#1fa971':'var(--ink)'}">${r.amt>0?'+':''}${r.amt.toFixed(2)}</b></div>`).join(''):empty('还没有账单。发红包、点外卖都会记在这里')}</div>`;
+views.food=()=>{
+  const tabs=`<div class="pad" style="padding-bottom:4px">${seg('ftab',ui.foodTab,[['shop','点餐'],['orders','订单']])}</div>`;
+  if(ui.foodTab==='orders')return bar('外卖',{back:false})+tabs+`<div class="scroll">${S.orders.length?S.orders.map(o=>`<div class="item" style="cursor:default"><div class="ic" style="width:44px;height:44px;font-size:22px;background:var(--surf2)">${SHOPS.find(s=>s.n===o.shop)?.e||'🍱'}</div><div class="grow"><div class="t1">${esc(o.shop)}<span class="price">${money(o.total)}</span></div><div class="t2">${esc(o.items.map(i=>i.n+'×'+i.q).join('、'))}</div><div class="t2">送给 ${o.to==='me'?'自己':esc(charById(o.to).name)} · ${o.status==='done'?'已送达':'配送中…'}</div></div></div>`).join(''):empty('还没有订单')}</div>`;
+  return bar('外卖',{back:false})+tabs+`<div class="scroll">${ui.foodTo?`<div class="hint">这单打算送给:${esc(charById(ui.foodTo).name)}</div>`:''}${SHOPS.map((s,i)=>`<div class="shop" data-act="shop" data-id="${i}"><div class="se">${s.e}</div><div class="grow"><div class="t1">${s.n}</div><div class="t2">${s.items.map(x=>x[0]).join(' · ')}</div></div>›</div>`).join('')}</div>`;
+};
+views['food:shop']=()=>{
+  const s=SHOPS[ui.sub.id],c=ui.cart,n=c?c.items.reduce((a,b)=>a+b.q,0):0,tot=c?c.items.reduce((a,b)=>a+b.q*b.p,0):0;
+  return bar(s.n)+`<div class="scroll">${s.items.map((x,i)=>`<div class="item" style="cursor:default"><div class="grow"><div class="t1">${x[0]}</div><div class="t2 price">${money(x[1])}</div></div><button class="plus" data-act="addcart" data-id="${i}">+</button></div>`).join('')}
+  <div class="item" data-act="customitem"><div class="grow"><div class="t1">没有想吃的?自定义一个</div><div class="t2">自己写商品名和价格</div></div>＋</div></div>
+  ${n?`<div class="cartbar"><span>🛒 ${n} 件 · ${money(tot)}</span><button data-act="checkout">去结算</button></div>`:''}`;
+};
+views.out=()=>{
+  const cid=ui.outCid||S.chars[0]?.id;
+  return bar('外出',{back:false})+`<div class="scroll"><div class="sec">和谁一起</div><div class="chips wrap">${S.chars.map(c=>`<span class="chip ${cid===c.id?'on':''}" data-act="outc" data-id="${c.id}">${esc(c.name)}</span>`).join('')||'<span class="hint">先去通讯录添加好友</span>'}</div>
+  <div class="sec">去哪里</div><div class="chips wrap">${PLACES.map(p=>`<span class="chip ${ui.outPlace===p&&!ui.outCustom?'on':''}" data-act="outp" data-id="${p}">${p}</span>`).join('')}</div>
+  <div class="pad"><input id="outcustom" placeholder="或自定义:比如“深夜去天台吹风”" value="${esc(ui.outCustom)}"><button class="btn big" data-act="outgo">出发</button></div>
+  <div class="sec">足迹</div>${S.outings.length?S.outings.map(o=>`<div class="out"><h4>${esc(o.place)}</h4><small>和 ${esc(charById(o.cid).name)} · ${fmt(o.time)}</small><p>${esc(o.story)}</p><div class="btnrow" style="justify-content:flex-start;margin:10px 0 0"><button class="btn ghost" data-act="outchat" data-id="${o.cid}">继续聊聊</button></div></div>`).join(''):empty('还没有足迹。选个人、选个地方,出门走走吧')}</div>`;
+};
+hooks.out=()=>{const i=$('#outcustom');if(i)i.oninput=()=>{ui.outCustom=i.value}};
+views.peek=()=>{
+  const cid=ui.peekId||S.chars[0]?.id;ui.peekId=cid;const d=cid&&S.phones[cid];
+  let body=cid?empty('还没偷看过。点下方按钮,看看 TA 的手机里有什么'):empty('先去通讯录添加好友');
+  if(d){
+    body={diary:`<div class="pcard"><b>今日日记</b>${esc(d.diary)}</div>`,
+      searches:`<div class="pcard"><b>最近搜索</b>${(d.searches||[]).map(s=>'🔎 '+esc(s)).join('\n')}</div>`,
+      memos:(d.memos||[]).map(m=>`<div class="pcard"><b>${esc(m.title)}</b>${esc(m.text)}</div>`).join(''),
+      chats:(d.chats||[]).map(m=>`<div class="pcard"><b>${esc(m.who)}</b>${esc(m.text)}</div>`).join('')}[ui.peekTab];
+  }
+  return bar('查手机',{back:false})+`<div class="chips">${S.chars.map(c=>`<span class="chip ${cid===c.id?'on':''}" data-act="peekc" data-id="${c.id}">${esc(c.name)}</span>`).join('')}</div>
+  <div class="pad" style="padding-top:0">${seg('peekt',ui.peekTab,[['diary','日记'],['searches','搜索'],['memos','备忘录'],['chats','聊天']])}</div><div class="scroll">${body}<div class="pad"><button class="btn big" data-act="peekgen">${d?'重新偷看':'偷看 TA 的手机'}</button>${d?`<div class="hint" style="text-align:center">上次偷看:${fmt(d.time)}</div>`:''}</div></div>`;
+};
+views.world=()=>bar('世界书',{back:false,right:'<button data-act="wnew">＋</button>'})+`<div class="scroll"><div class="hint">命中关键词的条目,会在聊天、圈子、论坛、外出生成时自动加入提示词。「常驻」条目始终生效,作用范围可限定到某个好友。</div>${S.world.length?S.world.map(w=>`<div class="item" data-act="wedit" data-id="${w.id}"><div class="grow"><div class="t1">${esc(w.title)}</div><div class="t2">${w.constant?'<span class="tag">常驻</span>':''}<span class="tag">${w.scope==='all'?'全局':esc(charById(w.scope).name)}</span>${esc(w.keys||'无关键词')}</div></div>${tg(w.enabled,'wtoggle',w.id)}</div>`).join(''):empty('还没有条目,点右上角 ＋ 添加')}</div>`;
+views.style=()=>{
+  const st=S.style,ACC=['#0095f6','#ed4956','#8a3ab9','#2db67c','#f5a623','#262626'];
+  return bar('美化',{back:false})+`<div class="scroll">
+  <div class="item" style="cursor:default"><div class="grow">深色模式</div>${tg(st.dark,'dark')}</div>
+  <div class="sec">强调色</div><div class="rowx">${ACC.map(c=>`<span class="sw ${st.accent===c?'on':''}" style="background:${c}" data-act="accent" data-id="${c}"></span>`).join('')}<input type="color" id="accpick" value="${st.accent}" style="width:38px;height:30px;border:0;background:none;padding:0"></div>
+  <div class="sec">主屏壁纸</div><div class="rowx">${WALLS.map((w,i)=>`<span class="wp" style="background:${w}" data-act="wall" data-id="${i}"></span>`).join('')}</div>
+  <div class="rowx"><button class="btn ghost" data-act="wallup">上传照片</button>${isImg(st.wall)?'<span class="tag">当前:自定义照片</span>':''}</div>
+  <div class="pad" style="padding-bottom:2px"><span class="fl">主屏文字颜色</span><div style="margin-top:6px">${seg('homet',st.homeText,[['dark','深色'],['light','浅色']])}</div></div>
+  <div class="sec">聊天壁纸(所有聊天默认)</div><div class="rowx">${WALLS.map((w,i)=>`<span class="wp" style="background:${w}" data-act="cwall" data-id="${i}"></span>`).join('')}</div>
+  <div class="rowx"><button class="btn ghost" data-act="cwallup">上传照片</button><button class="btn ghost" data-act="cwallclr">恢复默认</button></div>
+  <div class="sec">小组件</div><div class="rowx"><button class="btn ghost" data-act="widimg">更换照片</button><button class="btn ghost" data-act="widclr">清除照片</button><button class="btn ghost" data-act="widnote">改便签</button></div>
+  <div class="sec">界面</div>
+  <div class="pad" style="padding-top:0"><span class="fl">图标形状</span><div style="margin:6px 0 12px">${seg('shape',st.shape,[['round','圆角'],['circle','圆形'],['flat','无底']])}</div>
+  <span class="fl">气泡样式</span><div style="margin:6px 0 12px">${seg('bubble',st.bubble,[['round','圆润'],['square','方正'],['grad','渐变']])}</div>
+  <span class="fl">字号</span><div style="margin:6px 0 4px">${seg('font',st.font,[['sm','小'],['md','中'],['lg','大']])}</div></div>
+  <div class="sec">自定义应用图标与名称</div>${APPS.map(a=>{const i=appInfo(a.id);return `<div class="item" data-act="iconedit" data-id="${a.id}"><div class="ic" style="width:40px;height:40px;font-size:20px;border-radius:12px;background:var(--surf2)">${i.img?`<img src="${i.img}">`:esc(i.emoji)}</div><div class="grow">${esc(i.name)}</div>›</div>`}).join('')}<div style="height:24px"></div></div>`;
+};
+hooks.style=()=>{const p=$('#accpick');if(p)p.oninput=()=>{S.style.accent=p.value;save();applyStyle()}};
+views.settings=()=>bar('设置',{back:false})+`<div class="scroll">
+  <div class="item" data-act="mprofile">${av(S.me)}<div class="grow"><div class="t1">${esc(S.me.name)}</div><div class="t2">${esc(S.me.persona||'点击编辑头像、昵称与人设')}</div></div>›</div>
+  <div class="sec">连接</div>
+  <div class="item" data-act="msettings"><span class="ico">🔌</span><div class="grow">API 设置<div class="t2">${S.settings.apiKey?esc(S.settings.model)+(S.settings.stream?' · 流式':''):'未配置(演示模式)'}</div></div>›</div>
+  <div class="sec">数据</div>
+  <div class="item" data-act="mexport"><span class="ico">📤</span><div class="grow">导出全部数据(不含 Key)</div>›</div>
+  <div class="item" data-act="mimport"><span class="ico">📥</span><div class="grow">导入数据</div>›</div>
+  <div class="item" data-act="mreset"><span class="ico">🗑️</span><div class="grow" style="color:var(--like)">清空所有数据</div></div></div>`;
+
+function renderApp(opts={}){
+  const a=$('#app');
+  if(!ui.app){a.hidden=true;renderHome();applyStyle();return}
+  a.hidden=false;
+  const key=ui.app+(ui.sub?':'+ui.sub.type:'');
+  a.innerHTML=(views[key]||views[ui.app])();
+  if(opts.pop){a.classList.remove('pop');void a.offsetWidth;a.classList.add('pop')}
+  hooks[key]&&hooks[key]();applyStyle();
+}
+function refresh(){
+  if(!ui.app){renderHome();return}
+  if(ui.app==='chat'&&ui.sub?.type==='chat'){renderMsgs();renderChatBar();return}
+  if(ui.app==='forum'&&ui.sub?.type==='post'){renderPost();return}
+  renderApp();
+}
+
+/* ================= 事件 ================= */
+function msgMenu(mid){
+  const id=ui.sub?.id;if(!id)return;
+  const log=chatLog(id),m=log.find(x=>x.id===mid);if(!m)return;
+  ui.selMsg=mid;
+  const lastAi=m.role==='assistant'&&log.slice().reverse().find(x=>x.role!=='sys')?.id===mid||(m.role==='assistant'&&log[log.length-1]?.role==='assistant');
+  sheet(`<h3>消息</h3><div class="menu">${['text','voice','narr',undefined].includes(m.type)?'<button class="btn ghost" data-act="msgcopy">复制</button>':''}${m.role==='assistant'&&['text','voice','narr'].includes(m.type)?'<button class="btn ghost" data-act="msgspeak">朗读</button>':''}${lastAi&&!isGroup(id)?'<button class="btn ghost" data-act="regen">重新生成回复</button>':''}<button class="btn danger" data-act="msgdel">删除</button></div>`);
+}
+const selMsg=()=>chatLog(ui.sub.id).find(x=>x.id===ui.selMsg);
+const acts={
+  open(d){ui.app=d.id;ui.sub=null;ui.ret=null;ui.panel=null;renderApp({pop:true})},
+  back(){
+    if(ui.ret&&ui.sub?.type==='char'){const r=ui.ret;ui.ret=null;ui.app=r.app;ui.sub=r.sub;renderApp();return}
+    if(ui.sub){ui.sub=null;ui.panel=null}else ui.app=null;renderApp();
+  },
+  home(){if(!ui.app)return;ui.app=null;ui.sub=null;ui.panel=null;renderApp()},
+  /* 聊天 */
+  chat(d){
+    ui.app='chat';ui.sub={type:'chat',id:d.id};ui.panel=null;ui.ret=null;
+    const log=chatLog(d.id);M(d.id).unread=0;
+    if(!log.length&&!isGroup(d.id)){const c=charById(d.id);if(c.greeting)log.push({id:uid(),role:'assistant',type:'text',from:d.id,content:c.greeting,time:now()})}
+    save();renderApp({pop:true});
+  },
+  mode(){const m=M(ui.sub.id);m.mode=m.mode==='offline'?'online':'offline';chatLog(ui.sub.id).push({id:uid(),role:'sys',type:'sys',ai:true,content:m.mode==='offline'?'你们现在线下见面了,处在同一个场景里。':'你们回到了手机线上聊天。',time:now()});save();ui.panel=null;renderPanel();refresh()},
+  plus(){ui.panel=ui.panel?null:'plus';renderPanel()},
+  pl(d){
+    const id=ui.sub.id;
+    if(d.id==='red'||d.id==='transfer'){ui.panel=null;renderPanel();return moneyForm(d.id,id)}
+    if(d.id==='voice'){ui.voiceMode=!ui.voiceMode;ui.panel=null;renderPanel();renderChatBar();toast(ui.voiceMode?'语音模式已开:发送的文字会变成语音消息':'语音模式已关');return}
+    if(d.id==='poke'){ui.panel=null;renderPanel();return acts.poke({id})}
+    if(d.id==='emoji'){ui.panel='emoji';renderPanel();return}
+    if(d.id==='food'){ui.foodTo=id;ui.foodTab='shop';return acts.open({id:'food'})}
+    if(d.id==='outing'){ui.outCid=id;return acts.open({id:'out'})}
+  },
+  emo(d){const id=ui.sub.id;ui.panel=null;renderPanel();if(chatBusy[id])return;isGroup(id)?sendGroup(id,d.id):sendChat(id,d.id,'sticker')},
+  poke(d){
+    const c=charById(d.id);if(isGroup(d.id)||M(d.id).blocked||c.blockedMe)return;
+    if(chatBusy[d.id])return;
+    chatEvent(d.id,`${S.me.name} 拍了拍你`);
+    if(!S.settings.apiKey)toast('拍了拍 TA(配置 API 后 TA 会有反应)');
+  },
+  voice(d,t){
+    const m=selMsg0(t.dataset.mid);if(!m)return;
+    m.show=!m.show;save();renderMsgs();
+    speak(m.content,m.role==='user'?null:charById(m.from||ui.sub.id));
+  },
+  claim(d,t){
+    const m=selMsg0(t.dataset.mid);if(!m||m.state==='claimed')return;
+    m.state='claimed';income(m.amt,`${charById(m.from||ui.sub.id).name}的${m.type==='red'?'红包':'转账'}`);save();renderMsgs();toast(`已领取 ${money(m.amt)}`);
+    chatEvent(ui.sub.id,`${S.me.name}领取了你发的${m.type==='red'?'红包':'转账'}(${money(m.amt)})`);
+  },
+  msgcopy(){const m=selMsg();if(m)navigator.clipboard?.writeText(m.content).then(()=>toast('已复制'),()=>toast('复制失败'))},
+  msgspeak(){const m=selMsg();if(m)speak(m.content,charById(m.from||ui.sub.id))},
+  msgdel(){const id=ui.sub.id;S.chats[id]=chatLog(id).filter(x=>x.id!==ui.selMsg);save();renderMsgs()},
+  regen(){
+    const id=ui.sub.id,log=chatLog(id);
+    while(log.length&&log[log.length-1].role==='assistant')log.pop();
+    save();renderMsgs();aiReply(id);
+  },
+  chatmenu(){
+    const id=ui.sub.id,g=isGroup(id),c=g?null:charById(id),m=M(id);
+    sheet(`<h3>${esc(chatTitle(id))}</h3><div class="menu">${g?'':'<button class="btn ghost" data-act="profile" data-id="'+id+'">查看档案</button>'}<button class="btn ghost" data-act="chatbg">设置本聊天壁纸</button>
+    ${g?'<button class="btn danger" data-act="groupdel">解散群聊</button>':`<button class="btn ghost" data-act="${m.blocked?'unblock':'block'}">${m.blocked?'解除拉黑':'拉黑 TA'}</button>${c.blockedMe?'<button class="btn ghost" data-act="friendreq">发送好友申请</button>':''}`}
+    <button class="btn danger" data-act="chatclear">清空聊天记录</button></div>`);
+  },
+  async chatbg(){const d=await pickImage({w:600,h:1304,q:.78});if(d){M(ui.sub.id).bg=d;save();applyBgs();toast('已更换壁纸')}},
+  chatclear(){S.chats[ui.sub.id]=[];save();renderMsgs();toast('已清空')},
+  async groupdel(){if(!await askConfirm('解散这个群聊?'))return;const id=ui.sub.id;S.groups=S.groups.filter(g=>g.id!==id);delete S.chats[id];ui.sub=null;save();renderApp()},
+  block(){M(ui.sub.id).blocked=true;chatLog(ui.sub.id).push({id:uid(),role:'sys',type:'sys',content:'你已将 TA 拉黑',time:now()});save();refresh()},
+  unblock(){M(ui.sub.id).blocked=false;chatLog(ui.sub.id).push({id:uid(),role:'sys',type:'sys',content:'你已解除拉黑',time:now()});save();refresh()},
+  async friendreq(){
+    const id=ui.sub?.id||ui.sub?.id,c=charById(id);if(!c.blockedMe)return;
+    const t=await askText('好友申请 / 道歉','写下你想对 TA 说的话…');if(!t)return;
+    chatLog(id).push({id:uid(),role:'user',type:'sys',content:'你发送了好友申请:'+t,time:now()});
+    const d=await askJSON(`你是「${c.name}」。\n${charSheet(c)}\n你因为被用户「${S.me.name}」严重冒犯,把对方拉黑了。你对用户的好感度 ${c.aff??50}/100。\n对方现在发来好友申请:「${t}」。\n最近聊天:\n${chatLog(id).filter(m=>m.role!=='sys').slice(-8).map(m=>(m.role==='user'?S.me.name:c.name)+':'+msgText(m)).join('\n')}\n请决定是否原谅(好感度越高越容易原谅,诚意也很重要)。输出JSON:{"forgive":true或false,"text":"你的回应(若原谅则是通过后说的第一句话)"}`,
+      ()=>({forgive:Math.random()<.6,text:'(演示)……下不为例。'}),true);
+    if(!d)return;
+    const log=chatLog(id);
+    if(d.forgive){c.blockedMe=false;log.push({id:uid(),role:'sys',type:'sys',content:`${c.name} 通过了你的好友申请`,time:now()});log.push({id:uid(),role:'assistant',type:'text',from:id,content:String(d.text||'……好吧。'),time:now()})}
+    else log.push({id:uid(),role:'sys',type:'sys',content:`${c.name} 没有通过你的好友申请`,time:now()});
+    save();refresh();
+  },
+  /* 档案 / 通讯录 */
+  profile(d){ui.ret=ui.app==='chat'&&ui.sub?.type==='chat'?{app:'chat',sub:ui.sub}:null;ui.app='contacts';ui.sub={type:'char',id:d.id};renderApp()},
+  cadd(){sheet('<h3>添加</h3><div class="menu"><button class="btn ghost" data-act="cnew">✎ 新建档案</button><button class="btn ghost" data-act="cgen">✨ AI 生成角色</button><button class="btn ghost" data-act="cimport">📥 导入角色卡</button><button class="btn ghost" data-act="gnew">👥 创建群聊</button></div>')},
+  cnew(){charForm()},
+  cedit(d){charForm(S.chars.find(c=>c.id===d.id))},
+  cexport(d){exportChar(S.chars.find(c=>c.id===d.id));toast('角色卡已导出')},
+  cblock(d){const m=M(d.id);m.blocked=!m.blocked;save();refresh()},
+  async cdel(d){
+    if(!await askConfirm('删除这位好友及其聊天记录?'))return;
+    S.chars=S.chars.filter(c=>c.id!==d.id);delete S.chats[d.id];delete S.meta[d.id];
+    S.groups.forEach(g=>g.members=g.members.filter(i=>i!==d.id));ui.sub=null;ui.ret=null;save();renderApp();
+  },
+  async cgen(){
+    const kw=await askText('想要什么样的角色?','例如:住在隔壁的神秘作家(可留空,随机生成)');if(kw===null)return;
+    await withBusy('正在生成角色…',async()=>{
+      const d=await askJSON(`请创作一个适合在手机里聊天的虚构角色。要求:${kw||'随机,有个性、有记忆点'}。\n已有好友:${S.chars.map(c=>c.name).join('、')||'无'}(不要重名)\n${worldFor('',kw)}\n输出JSON:{"name":"名字","avatar":"一个emoji","signature":"个性签名","gender":"","age":"","job":"","persona":"性格","looks":"外貌","speech":"说话风格/口癖","background":"背景故事,80字内","relation":"与用户的关系","callMe":"对用户的称呼","greeting":"第一次聊天的开场白"}`,
+        ()=>({name:pick(['阿澈','苏晚','周小棠']),avatar:pick(['🦊','🌙','🍵']),persona:'(演示角色)性格随和,爱聊天。',greeting:'你好呀~'}));
+      if(d?.name){const c={id:'c'+uid(),aff:50,voice:{},...d,avatar:String(d.avatar||'🙂')};S.chars.push(c);save();refresh();toast('新好友 '+c.name+' 已加入')}
+    });
+  },
+  cimport(){
+    sheet(`<h3>导入角色卡</h3><p class="desc">支持本应用导出的角色卡,以及常见的 JSON 角色卡(含 SillyTavern V1/V2,会一并导入内置世界书)。</p><div class="row" style="justify-content:center"><button class="btn ghost" data-x="file">选择 .json 文件</button></div><textarea id="im" rows="5" placeholder="或把角色卡 JSON 粘贴到这里" style="margin-top:12px"></textarea><div class="row"><button class="btn ghost" data-x="no">取消</button><button class="btn" data-x="ok">导入</button></div>`,(s,close)=>{
+      const run=txt=>{try{const c=importCard(JSON.parse(txt));S.chars.push(c);save();close();refresh();toast('已导入:'+c.name)}catch(e){toast('无法识别这个角色卡')}};
+      s.querySelector('[data-x=no]').onclick=close;
+      s.querySelector('[data-x=ok]').onclick=()=>run($('#im',s).value);
+      s.querySelector('[data-x=file]').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=()=>{const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>run(r.result);r.readAsText(f)};i.click()};
+    });
+  },
+  gnew(){
+    if(S.chars.length<2)return toast('至少要有 2 位好友才能建群');
+    form('创建群聊',[{k:'name',label:'群名',val:'快乐小群'},...S.chars.map(c=>({k:'m_'+c.id,label:c.name,type:'check',val:true}))],o=>{
+      const members=S.chars.filter(c=>o['m_'+c.id]).map(c=>c.id);
+      if(!o.name.trim()||members.length<2){toast('需要群名和至少 2 位成员');return false}
+      S.groups.push({id:'g_'+uid(),name:o.name.trim(),members});save();refresh();
+    });
+  },
+  /* 圈子 */
+  mgen(){genMoments()},
+  async mpost(){
+    form('发动态',[{k:'text',label:'此刻的想法',type:'area',rows:3},{k:'img',type:'img',label:'配一张照片(可选)',val:'',ph:'＋',opt:{size:800,q:.78}}],o=>{
+      if(!o.text.trim()&&!o.img){toast('写点什么或选张照片');return false}
+      const p={id:uid(),authorId:'me',text:o.text.trim(),img:o.img,time:now(),likes:[],comments:[]};
+      S.moments.push(p);save();refresh();reactMoment(p);
+    },[],'发布');
+  },
+  like(d){const p=S.moments.find(x=>x.id===d.id),i=p.likes.indexOf('me');i<0?p.likes.push('me'):p.likes.splice(i,1);save();refresh()},
+  async cmt(d){const p=S.moments.find(x=>x.id===d.id);const t=await askText('评论');if(!t)return;p.comments.push({authorId:'me',text:t,time:now()});save();refresh();replyComment(p,t)},
+  mdel(d){S.moments=S.moments.filter(x=>x.id!==d.id);save();refresh()},
+  story(d){
+    const c=charById(d.id),p=S.moments.filter(x=>x.authorId===d.id).sort((a,b)=>b.time-a.time)[0];
+    if(!p)return toast(c.name+' 还没有动态');
+    sheet(`<h3>${esc(c.name)}</h3>${p.pic?`<div class="pph" style="--h:${hash(p.pic)%360};border-radius:16px;margin-bottom:12px"><span>📷</span><p>${esc(p.pic)}</p></div>`:''}<p class="desc" style="color:var(--ink);font-size:15px">${esc(p.text)}</p><div class="row" style="justify-content:center"><button class="btn" data-act="chat" data-id="${c.id}">发消息</button></div>`);
+  },
+  /* 论坛 */
+  fboard(d){ui.board=d.id;renderApp()},
+  async fnewboard(){const t=await askText('新板块名称');if(t&&!S.forum.boards.includes(t)){S.forum.boards.push(t);ui.board=t;save();renderApp()}},
+  fgen(){genForum()},
+  fpost(){
+    form('发帖',[{k:'board',label:'板块',type:'select',val:S.forum.boards.includes(ui.board)?ui.board:S.forum.boards[0],opts:S.forum.boards.map(b=>[b,b])},{k:'title',label:'标题'},{k:'content',label:'正文',type:'area',rows:5}],o=>{
+      if(!o.title.trim()){toast('标题不能为空');return false}
+      const p={id:uid(),board:o.board,authorId:'me',title:o.title.trim(),content:o.content.trim(),time:now(),replies:[]};
+      S.forum.posts.push(p);save();refresh();if(S.settings.apiKey)genReplies(p,true);
+    },[],'发布');
+  },
+  fopen(d){ui.sub={type:'post',id:d.id};renderApp()},
+  fsummon(){const p=S.forum.posts.find(x=>x.id===ui.sub.id);if(p)withBusy('网友赶来围观…',()=>genReplies(p))},
+  /* 钱包 */
+  sign(){
+    if(S.wallet.lastSign===new Date().toDateString())return toast('今天已经签过啦');
+    const n=Math.floor(20+Math.random()*69);S.wallet.lastSign=new Date().toDateString();income(n,'每日签到');save();refresh();toast(`签到成功,零花钱 +${n}`);
+  },
+  async topup(){const t=await askText('充值金额(虚拟零钱)','例如 200');const n=parseFloat(t);if(!(n>0))return;income(Math.min(n,99999),'充值');save();refresh()},
+  /* 外卖 */
+  ftab(d){ui.foodTab=d.id;renderApp()},
+  shop(d){ui.sub={type:'shop',id:+d.id};renderApp()},
+  addcart(d){
+    const s=SHOPS[ui.sub.id],it=s.items[+d.id];
+    if(!ui.cart||ui.cart.shop!==s.n)ui.cart={shop:s.n,items:[]};
+    const f=ui.cart.items.find(x=>x.n===it[0]);f?f.q++:ui.cart.items.push({n:it[0],p:it[1],q:1});renderApp();
+  },
+  customitem(){
+    form('自定义商品',[{k:'n',label:'商品名',ph:'例如:一份温柔的关东煮'},{k:'p',label:'价格(元)',type:'number',step:'0.1',val:'20'}],o=>{
+      const p=parseFloat(o.p);if(!o.n.trim()||!(p>0)){toast('请填写商品名和价格');return false}
+      const s=SHOPS[ui.sub.id];if(!ui.cart||ui.cart.shop!==s.n)ui.cart={shop:s.n,items:[]};
+      ui.cart.items.push({n:o.n.trim(),p,q:1});renderApp();
+    },[],'加入购物车');
+  },
+  checkout(){
+    const c=ui.cart;if(!c||!c.items.length)return;
+    const total=c.items.reduce((a,b)=>a+b.p*b.q,0);
+    form(`结算 ${money(total)}`,[{k:'to',label:'送给谁',type:'select',val:ui.foodTo||'me',opts:[['me','自己'],...S.chars.map(x=>[x.id,x.name])]},{k:'note',label:'备注',ph:'少辣、多放葱…'}],o=>{
+      if(!pay(total,'外卖 · '+c.shop))return false;
+      const ord={id:uid(),shop:c.shop,items:c.items.map(x=>({...x})),total,to:o.to,note:o.note.trim(),time:now(),eta:now()+(10+Math.random()*10)*1000,status:'delivering'};
+      S.orders.unshift(ord);schedule(ord);ui.cart=null;ui.foodTo=null;ui.sub=null;ui.foodTab='orders';save();renderApp();toast('下单成功,骑手正在路上 🛵');
+    },[],'支付');
+  },
+  /* 外出 / 查手机 */
+  outc(d){ui.outCid=d.id;renderApp()},
+  outp(d){ui.outPlace=d.id;ui.outCustom='';renderApp()},
+  outgo(){goOut()},
+  outchat(d){const m=M(d.id);m.mode='offline';save();acts.chat(d)},
+  peekc(d){ui.peekId=d.id;renderApp()},
+  peekt(d){ui.peekTab=d.id;renderApp()},
+  peekgen(){if(ui.peekId)peekGen(ui.peekId)},
+  peekgo(d){ui.peekId=d.id;acts.open({id:'peek'})},
+  /* 世界书 */
+  wnew(){worldForm()},
+  wedit(d){worldForm(S.world.find(w=>w.id===d.id))},
+  wtoggle(d){const w=S.world.find(x=>x.id===d.id);w.enabled=!w.enabled;save();renderApp()},
+  /* 美化 */
+  dark(){S.style.dark=!S.style.dark;save();applyStyle();renderApp()},
+  accent(d){S.style.accent=d.id;save();applyStyle();renderApp()},
+  wall(d){S.style.wall=WALLS[+d.id];save();applyStyle()},
+  async wallup(){const x=await pickImage({w:600,h:1304,q:.78});if(x){S.style.wall=x;save();applyStyle();renderApp()}},
+  homet(d){S.style.homeText=d.id;save();applyStyle();renderApp()},
+  cwall(d){S.style.chatBg=WALLS[+d.id];save();toast('聊天壁纸已更换')},
+  async cwallup(){const x=await pickImage({w:600,h:1304,q:.78});if(x){S.style.chatBg=x;save();toast('聊天壁纸已更换')}},
+  cwallclr(){S.style.chatBg='';save();toast('已恢复默认')},
+  async widimg(){const x=await pickImage({square:true,size:480,q:.8});if(x){S.style.widgetImg=x;save();refresh()}},
+  widclr(){S.style.widgetImg='';save();refresh()},
+  async widnote(){const t=await askText('小组件便签','写点什么吧',S.style.widgetNote);if(t!==null){S.style.widgetNote=t;save();refresh()}},
+  shape(d){S.style.shape=d.id;save();applyStyle();renderApp()},
+  bubble(d){S.style.bubble=d.id;save();applyStyle();renderApp()},
+  font(d){S.style.font=d.id;save();applyStyle();renderApp()},
+  iconedit(d){
+    const a=appInfo(d.id);
+    form('自定义图标',[{k:'name',label:'名称',val:a.name},{k:'emoji',label:'emoji 图标',val:a.emoji},{k:'img',type:'img',label:'或上传图片图标',val:a.img||'',ph:'＋',opt:{square:true,size:128,q:.9,type:'image/png'}}],o=>{
+      S.style.icons[d.id]={name:o.name.trim()||APPS.find(x=>x.id===d.id).name,emoji:o.emoji.trim()||APPS.find(x=>x.id===d.id).emoji,img:o.img};save();renderApp();
+    },[{label:'恢复默认',fn:(_,close)=>{delete S.style.icons[d.id];save();close();renderApp()}}]);
+  },
+  /* 设置 */
+  mprofile(){
+    form('我的资料',[{k:'avatarImg',type:'img',label:'头像(上传图片)',val:isImg(S.me.avatar)?S.me.avatar:'',ph:'头像'},{k:'emoji',label:'或使用 emoji / 文字头像',val:isImg(S.me.avatar)?'':S.me.avatar},{k:'name',label:'昵称',val:S.me.name},{k:'persona',label:'我的人设(角色会据此和你互动)',type:'area',rows:4,val:S.me.persona,ph:'例如:大学生,养了一只橘猫,喜欢摄影'}],o=>{
+      if(!o.name.trim()){toast('昵称不能为空');return false}
+      S.me={name:o.name.trim(),avatar:o.avatarImg||o.emoji||'🙂',persona:o.persona};save();renderApp();
+    });
+  },
+  msettings(){
+    const st=S.settings;
+    form('API 设置',[
+      {k:'baseUrl',label:'接口地址(OpenAI 兼容,不含 /chat/completions)',val:st.baseUrl},{k:'apiKey',label:'API Key',type:'password',val:st.apiKey},
+      {k:'model',label:'模型名称',val:st.model},{k:'temperature',label:'temperature(越高越发散)',type:'number',step:'0.1',val:st.temperature},
+      {k:'history',label:'每次带入的历史消息条数',type:'number',val:st.history},
+      {k:'stream',label:'流式输出(边生成边显示)',type:'check',val:st.stream},{k:'autoVoice',label:'自动朗读角色的语音消息',type:'check',val:st.autoVoice},
+      {k:'proactive',label:'角色会主动发消息(会消耗额度)',type:'check',val:st.proactive},{k:'proactiveMin',label:'主动消息最短间隔(分钟)',type:'number',val:st.proactiveMin}
+    ],o=>{S.settings=readSettings(o);save();renderApp();toast('已保存')},
+    [{label:'测试连接',fn:async o=>{S.settings=readSettings(o);save();toast('测试中…');try{await callAPI([{role:'user',content:'回复 ok'}]);toast('连接成功 ✅')}catch(e){toast(e.message==='NOKEY'?'请先填写 API Key':errText(e).slice(0,90))}}}]);
+  },
+  mexport(){
+    const c=JSON.parse(JSON.stringify(S));c.settings.apiKey='';
+    sheet('<h3>导出数据</h3><p class="desc">会导出全部好友、聊天、动态、论坛、世界书、美化与图片(不含 API Key)。</p><div class="row" style="justify-content:center"><button class="btn" data-x="dl">下载备份文件</button></div>',s=>{
+      s.querySelector('[data-x=dl]').onclick=()=>download('ai-phone-backup.json',JSON.stringify(c))
+    });
+  },
+  mimport(){
+    sheet('<h3>导入数据</h3><div class="row" style="justify-content:center"><button class="btn ghost" data-x="file">选择备份文件</button></div><textarea id="im" rows="5" placeholder="或粘贴备份 JSON" style="margin-top:12px"></textarea><div class="row"><button class="btn ghost" data-x="no">取消</button><button class="btn" data-x="ok">导入并覆盖</button></div>',(s,close)=>{
+      const run=txt=>{try{const p=JSON.parse(txt),d=defaults();S={...d,...p,settings:{...d.settings,...p.settings,apiKey:S.settings.apiKey||p.settings?.apiKey||''},style:{...d.style,...p.style,icons:{...(p.style?.icons||{})}},wallet:{...d.wallet,...p.wallet},forum:{...d.forum,...p.forum},me:{...d.me,...p.me}};save();close();ui.app=null;ui.sub=null;renderApp();toast('导入成功')}catch(e){toast('JSON 格式不正确')}};
+      s.querySelector('[data-x=no]').onclick=close;s.querySelector('[data-x=ok]').onclick=()=>run($('#im',s).value);
+      s.querySelector('[data-x=file]').onclick=()=>{const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=()=>{const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>run(r.result);r.readAsText(f)};i.click()};
+    });
+  },
+  async mreset(){if(!await askConfirm('清空所有数据(含好友、聊天、动态、论坛、世界书、图片、API 设置)?'))return;S=defaults();save();ui.app=null;ui.sub=null;renderApp();toast('已清空')}
+};
+const selMsg0=mid=>ui.sub?chatLog(ui.sub.id).find(x=>x.id===mid):null;
+const readSettings=o=>({baseUrl:o.baseUrl.trim(),apiKey:o.apiKey.trim(),model:o.model.trim(),temperature:Number(o.temperature)||0.9,history:parseInt(o.history)||24,stream:!!o.stream,autoVoice:!!o.autoVoice,proactive:!!o.proactive,proactiveMin:Math.max(1,parseInt(o.proactiveMin)||5)});
+
+const phone=$('#phone');
+let lp=null,lpFired=false;
+phone.addEventListener('pointerdown',e=>{const t=e.target.closest('[data-mid]');if(!t)return;lpFired=false;lp=setTimeout(()=>{lpFired=true;msgMenu(t.dataset.mid)},480)});
+['pointerup','pointerleave','pointercancel'].forEach(ev=>phone.addEventListener(ev,()=>clearTimeout(lp)));
+phone.addEventListener('scroll',()=>clearTimeout(lp),true);
+phone.addEventListener('contextmenu',e=>{const t=e.target.closest('[data-mid]');if(t){e.preventDefault();clearTimeout(lp);msgMenu(t.dataset.mid)}});
+phone.addEventListener('click',e=>{
+  if(lpFired){lpFired=false;return}
+  const t=e.target.closest('[data-act]');if(!t)return;
+  const f=acts[t.dataset.act];if(!f)return;
+  if(t.closest('.sheet'))closeSheets();
+  f(t.dataset,t,e);
+});
+
+/* ================= 桌面适配:按 iPhone 17 Pro Max(440×956)等比缩放 ================= */
+function fit(){
+  if(innerWidth>=560){const k=Math.min(1,(innerHeight-40)/956);phone.style.transform=k<1?`scale(${k})`:''}
+  else phone.style.transform='';
+}
+addEventListener('resize',fit);fit();
+
+/* ================= 定时任务 ================= */
+S.orders.filter(o=>o.status==='delivering').forEach(o=>o.eta<=now()?(o.status='done'):schedule(o));
+setInterval(tick,15000);
+setInterval(async()=>{
+  const st=S.settings;if(!st.proactive||!st.apiKey||document.hidden)return;
+  if(now()-(S.lastPro||0)<st.proactiveMin*60000||Math.random()>.5)return;
+  const cands=S.chars.filter(c=>!M(c.id).blocked&&!c.blockedMe&&!chatBusy[c.id]);if(!cands.length)return;
+  const c=pick(cands);S.lastPro=now();
+  chatLog(c.id).push({id:uid(),role:'sys',type:'sys',ai:true,hidden:true,content:'(你想主动给用户发一条消息:可以是分享此刻的见闻、想念、随口一问或逗对方。不要重复之前说过的话。)',time:now()});
+  await aiReply(c.id);
+},60000);
+
+renderApp();
+</script>
+</body>
+</html>
